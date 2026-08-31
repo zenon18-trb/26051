@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Node / Next.js
+node_modules/
+frontend/.next/
+frontend/out/
+
+# Env (copy from *.example)
+.env
+.env.local
+backend/.env
+frontend/.env.local
+
+# OS / editor
+.DS_Store
+Thumbs.db

@@ -1,0 +1,67 @@
+[
+  {
+    "id": "jaisalmer",
+    "name": "Jaisalmer",
+    "region": "Rajasthan",
+    "latitude": 26.91,
+    "longitude": 70.91,
+    "lat": 26.91,
+    "lon": 70.91,
+    "environment_type": "hot-arid",
+    "climate_type": "hot-arid",
+    "description": "Extreme hot desert environment with high summer temperatures and low relative humidity.",
+    "fixture_id": "jaisalmer"
+  },
+  {
+    "id": "leh",
+    "name": "Leh",
+    "region": "Ladakh",
+    "latitude": 34.15,
+    "longitude": 77.57,
+    "lat": 34.15,
+    "lon": 77.57,
+    "environment_type": "cold-arid",
+    "climate_type": "cold-arid",
+    "description": "High-altitude cold desert environment with freezing winter temperatures and intense solar radiation.",
+    "fixture_id": "leh"
+  },
+  {
+    "id": "mumbai",
+    "name": "Mumbai",
+    "region": "Maharashtra",
+    "latitude": 19.07,
+    "longitude": 72.87,
+    "lat": 19.07,
+    "lon": 72.87,
+    "environment_type": "warm-humid",
+    "climate_type": "warm-humid",
+    "description": "Coastal tropical climate with high relative humidity throughout the year and heavy monsoon rainfall.",
+    "fixture_id": "mumbai"
+  },
+  {
+    "id": "shillong",
+    "name": "Shillong",
+    "region": "Meghalaya",
+    "latitude": 25.57,
+    "longitude": 91.88,
+    "lat": 25.57,
+    "lon": 91.88,
+    "environment_type": "temperate-humid",
+    "climate_type": "temperate-humid",
+    "description": "Monsoon-influenced temperate climate with heavy precipitation and moderate temperatures.",
+    "fixture_id": "shillong"
+  },
+  {
+    "id": "delhi",
+    "name": "New Delhi",
+    "region": "National Capital Region",
+    "latitude": 28.61,
+    "longitude": 77.21,
+    "lat": 28.61,
+    "lon": 77.21,
+    "environment_type": "composite",
+    "climate_type": "composite",
+    "description": "Composite climate showing hot semi-arid conditions with extreme summer heat and cold winters.",
+    "fixture_id": "delhi"
+  }
+]
