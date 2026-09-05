@@ -453,3 +453,16 @@ Protect Day 3 dashboard above Day 4 comparison polish.
   - `CRITICAL`: >25% of hours outside comfort band.
   *(These thresholds represent product-level user guidance thresholds and must never be cited as DRDO statutory standards or physical laws).*
 - **Wording Standard**: Dominant thermal drivers are documented as `"Likely contributors"` with measurable peak Watts evidence.
+
+---
+
+## Stage 9 — Thermal Failure → Feasible Fix Suggestions
+
+**Status:** COMPLETE
+
+**Design Principles & Boundaries**:
+- **Deterministic Candidate Generation**: Generates small, feasible single-parameter interventions based on diagnosed failure mode (insulation $+25\,\text{mm}$, glazing $-20\%$, ventilation state toggling, setpoint activation).
+- **Backend-Validated Physics**: No client-side thermal approximations. Every candidate modification is evaluated via real `POST /api/simulate` API calls on explicit user request.
+- **Single-Variable Transparency**: Each candidate modifies exactly *one* design parameter to preserve transparent cause-and-effect understanding.
+- **Immutable Baseline State**: Baseline configuration remains unmutated during candidate evaluation unless the user explicitly applies the fix.
+- **Not an Optimization Engine**: Stage 9 provides single-parameter interventions; full multi-parameter optimization and candidate Pareto ranking are reserved for Stage 10.
