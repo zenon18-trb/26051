@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
   Activity,
   AlertOctagon,
   AlertTriangle,
   ArrowLeft,
+  ArrowRight,
+  Check,
   CheckCircle2,
   Clock,
   Cpu,
@@ -15,13 +17,17 @@ import {
   HelpCircle,
   Info,
   Layers,
+  Play,
+  RefreshCw,
   ShieldAlert,
   ShieldCheck,
+  Sparkles,
   SunMedium,
   Thermometer,
   TrendingDown,
   TrendingUp,
   Wind,
+  Wrench,
 } from "lucide-react";
 import { useShelterConfiguration } from "@/context/ShelterConfigurationContext";
 import {
@@ -30,19 +36,112 @@ import {
   ThermalContributor,
   ThermalDiagnosis,
   ThermalSeverity,
-} from "@/lib/thermalDiagnosis";
+} from "@/lib/thermalDiagnosis.ts";
+import {
+  generateFeasibleFixCandidates,
+  evaluateThermalFix,
+  ThermalFixCandidate,
+  ThermalFixEvaluation,
+  ShelterFullConfiguration,
+} from "@/lib/thermalFixes.ts";
 
 export function SimulationResults({
   onNavigateToSimulation,
 }: {
   onNavigateToSimulation: () => void;
 }) {
-  const { simulationResult, location } = useShelterConfiguration();
+  const {
+    simulationResult,
+    location,
+    geometry,
+    wallLayers,
+    setWallLayers,
+    roofLayers,
+    setRoofLayers,
+    windows,
+    setWindows,
+    vents,
+    setVents,
+    occupants,
+    setOccupants,
+    hvac,
+    setHvac,
+    setSimulationResult,
+  } = useShelterConfiguration();
+
   const [hoveredHourIndex, setHoveredHourIndex] = useState<number | null>(null);
+  const [evaluatedFixes, setEvaluatedFixes] = useState<Record<string, ThermalFixEvaluation>>({});
+  const [evaluatingFixId, setEvaluatingFixId] = useState<string | null>(null);
+  const [evaluationError, setEvaluationError] = useState<string | null>(null);
+  const [appliedFixMsg, setAppliedFixMsg] = useState<string | null>(null);
+
+  const baselineConfig: ShelterFullConfiguration = useMemo(
+    () => ({
+      location,
+      geometry,
+      wallLayers,
+      roofLayers,
+      windows,
+      vents,
+      occupants,
+      hvac,
+    }),
+    [location, geometry, wallLayers, roofLayers, windows, vents, occupants, hvac]
+  );
 
   const diagnosis: ThermalDiagnosis | null = useMemo(() => {
     return diagnoseThermalPerformance(simulationResult);
   }, [simulationResult]);
+
+  const candidates: ThermalFixCandidate[] = useMemo(() => {
+    return generateFeasibleFixCandidates(baselineConfig, diagnosis);
+  }, [baselineConfig, diagnosis]);
+
+  // Handle single candidate evaluation
+  const handleEvaluateFix = useCallback(
+    async (candidate: ThermalFixCandidate) => {
+      if (!simulationResult) return;
+      setEvaluatingFixId(candidate.id);
+      setEvaluationError(null);
+      setAppliedFixMsg(null);
+
+      try {
+        const result = await evaluateThermalFix(candidate, baselineConfig, simulationResult);
+        setEvaluatedFixes((prev) => ({
+          ...prev,
+          [candidate.id]: result,
+        }));
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Failed to evaluate candidate fix.";
+        setEvaluationError(`Error evaluating "${candidate.title}": ${msg}`);
+      } finally {
+        setEvaluatingFixId(null);
+      }
+    },
+    [baselineConfig, simulationResult]
+  );
+
+  // Handle applying a fix to the active configuration
+  const handleApplyFix = useCallback(
+    (candidate: ThermalFixCandidate, evaluation: ThermalFixEvaluation) => {
+      const modified = candidate.applyModification(baselineConfig);
+
+      // Apply modifications to context
+      if (modified.wallLayers) setWallLayers(modified.wallLayers);
+      if (modified.roofLayers) setRoofLayers(modified.roofLayers);
+      if (modified.windows) setWindows(modified.windows);
+      if (modified.vents) setVents(modified.vents);
+      if (modified.occupants !== null && modified.occupants !== undefined) setOccupants(modified.occupants);
+      if (modified.hvac) setHvac(modified.hvac);
+
+      // Update active simulation result to evaluated response
+      setSimulationResult(evaluation.simulationResponse);
+
+      setAppliedFixMsg(`Successfully applied "${candidate.title}" to active shelter configuration.`);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    },
+    [baselineConfig, setWallLayers, setRoofLayers, setWindows, setVents, setOccupants, setHvac, setSimulationResult]
+  );
 
   if (!simulationResult || !diagnosis) {
     return (
@@ -114,10 +213,10 @@ export function SimulationResults({
       {/* Page Heading */}
       <div className="page-heading climate-heading">
         <div>
-          <p className="eyebrow">STAGE 8 · THERMAL FAILURE DETECTION &amp; DIAGNOSIS</p>
-          <h1>Thermal Health &amp; Design Diagnosis</h1>
+          <p className="eyebrow">STAGE 8 &amp; 9 · THERMAL DIAGNOSIS &amp; INTERVENTIONS</p>
+          <h1>Thermal Health &amp; Design Interventions</h1>
           <p className="page-description">
-            Deterministic rule-based failure diagnosis and contributor analysis derived from 24-hour transient simulation results.
+            Deterministic rule-based failure diagnosis and backend-validated single-parameter design interventions.
           </p>
         </div>
         <div className="configured-pill">
@@ -126,7 +225,15 @@ export function SimulationResults({
         </div>
       </div>
 
-      {/* 1. Primary Diagnosis Banner */}
+      {/* Applied Fix Toast Banner */}
+      {appliedFixMsg && (
+        <div className="geometry-success-banner" style={{ marginBottom: "14px" }}>
+          <CheckCircle2 aria-hidden />
+          <span>{appliedFixMsg}</span>
+        </div>
+      )}
+
+      {/* 1. Primary Diagnosis Hero Banner */}
       <div
         className="diagnosis-hero-banner"
         style={{
@@ -286,7 +393,249 @@ export function SimulationResults({
         </div>
       </section>
 
-      {/* 4. Two-Column Analysis Grid */}
+      {/* 4. STAGE 9: Potential Design Interventions & Evaluation Section */}
+      <section className="climate-panel" style={{ marginTop: "18px", padding: "22px" }}>
+        <div className="panel-heading" style={{ paddingBottom: "14px", borderBottom: "1px solid #edf2f5" }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span className="eyebrow" style={{ margin: 0 }}>STAGE 9 · POTENTIAL DESIGN INTERVENTIONS</span>
+            </div>
+            <h2 style={{ marginTop: "4px" }}>Evaluated Thermal Interventions</h2>
+            <p>
+              Targeted single-parameter modifications evaluated against the authoritative backend simulation engine.
+            </p>
+          </div>
+          <Wrench aria-hidden className="text-slate-400" />
+        </div>
+
+        {/* Evaluation Error Banner */}
+        {evaluationError && (
+          <div className="preflight-error-banner" style={{ marginTop: "14px" }}>
+            <AlertTriangle aria-hidden />
+            <div>
+              <strong>Candidate Evaluation Error</strong>
+              <p>{evaluationError}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Stable Case: No Fixes Required */}
+        {candidates.length === 0 ? (
+          <div className="stable-fixes-card" style={{ marginTop: "16px" }}>
+            <div className="stable-icon-wrap">
+              <ShieldCheck aria-hidden />
+            </div>
+            <div className="stable-fixes-content">
+              <strong>No Thermal Failure Detected</strong>
+              <p>
+                The baseline shelter configuration satisfies thermal comfort limits for all 24 simulated hours. Design interventions are not required for this baseline scenario.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="fixes-container" style={{ marginTop: "16px" }}>
+            <div className="fixes-intro-note">
+              <Sparkles aria-hidden className="w-4 h-4 text-blue-500 flex-shrink-0" />
+              <span>
+                <strong>Methodology:</strong> Each candidate modifies exactly <em>one</em> design parameter. Click <strong>Evaluate Fix</strong> to execute a real transient backend simulation for that specific candidate.
+              </span>
+            </div>
+
+            <div className="fixes-grid" style={{ marginTop: "14px", display: "flex", flexDirection: "column", gap: "14px" }}>
+              {candidates.map((candidate) => {
+                const evaluation = evaluatedFixes[candidate.id];
+                const isEvaluating = evaluatingFixId === candidate.id;
+
+                return (
+                  <div key={candidate.id} className={`fix-candidate-card ${evaluation ? "fix-card-evaluated" : ""}`}>
+                    {/* Card Header */}
+                    <div className="fix-card-header">
+                      <div className="fix-title-wrap">
+                        <span className="fix-priority-badge">Candidate #{candidate.priority}</span>
+                        <h3>{candidate.title}</h3>
+                      </div>
+                      <div className="fix-status-wrap">
+                        {isEvaluating ? (
+                          <span className="fix-eval-badge badge-evaluating">
+                            <RefreshCw aria-hidden className="spin w-3 h-3" />
+                            Simulating Backend...
+                          </span>
+                        ) : evaluation ? (
+                          <span
+                            className={`fix-eval-badge ${
+                              evaluation.comparison.outcome === "improves"
+                                ? "badge-outcome-improves"
+                                : evaluation.comparison.outcome === "worsens"
+                                ? "badge-outcome-worsens"
+                                : "badge-outcome-neutral"
+                            }`}
+                          >
+                            {evaluation.comparison.outcome === "improves"
+                              ? "✓ Improves Comfort"
+                              : evaluation.comparison.outcome === "worsens"
+                              ? "⚠ Degrades Comfort"
+                              : "○ Neutral Impact"}
+                          </span>
+                        ) : (
+                          <span className="fix-eval-badge badge-unevaluated">Not Yet Evaluated</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Parameter Change Row */}
+                    <div className="fix-params-row">
+                      <div className="fix-param-col">
+                        <span className="param-label">Target Parameter</span>
+                        <strong className="param-val">{candidate.parameterName}</strong>
+                      </div>
+                      <div className="fix-param-col">
+                        <span className="param-label">Baseline Value</span>
+                        <strong className="param-val" style={{ color: "#68808f" }}>
+                          {candidate.currentValueDisplay}
+                        </strong>
+                      </div>
+                      <div className="fix-arrow-col">
+                        <ArrowRight aria-hidden />
+                      </div>
+                      <div className="fix-param-col">
+                        <span className="param-label">Proposed Value</span>
+                        <strong className="param-val" style={{ color: "#1b5e85" }}>
+                          {candidate.proposedValueDisplay}
+                        </strong>
+                      </div>
+                    </div>
+
+                    {/* Rationale */}
+                    <p className="fix-rationale-text">
+                      <strong>Engineering Rationale:</strong> {candidate.rationale}
+                    </p>
+
+                    {/* Evaluated Comparison Metrics (Appears after simulation) */}
+                    {evaluation && (
+                      <div className="evaluation-results-box">
+                        <div className="eval-results-heading">
+                          <strong>Backend Simulation Comparison (Baseline vs Candidate)</strong>
+                        </div>
+
+                        <div className="eval-metrics-grid">
+                          <div className="eval-metric-cell">
+                            <span>Thermal Comfort</span>
+                            <strong>
+                              {evaluation.comparison.baselineComfortPct.toFixed(1)}% → {evaluation.comparison.candidateComfortPct.toFixed(1)}%
+                            </strong>
+                            <small
+                              style={{
+                                color:
+                                  evaluation.comparison.comfortDeltaPercentagePoints > 0
+                                    ? "#2e7a50"
+                                    : evaluation.comparison.comfortDeltaPercentagePoints < 0
+                                    ? "#c53828"
+                                    : "#68808f",
+                                fontWeight: 700,
+                              }}
+                            >
+                              {evaluation.comparison.comfortDeltaPercentagePoints > 0 ? "+" : ""}
+                              {evaluation.comparison.comfortDeltaPercentagePoints.toFixed(1)} percentage points
+                            </small>
+                          </div>
+
+                          <div className="eval-metric-cell">
+                            <span>Discomfort Hours</span>
+                            <strong>
+                              {evaluation.comparison.baselineHoursOutside} h → {evaluation.comparison.candidateHoursOutside} h
+                            </strong>
+                            <small
+                              style={{
+                                color:
+                                  evaluation.comparison.hoursOutsideDelta < 0
+                                    ? "#2e7a50"
+                                    : evaluation.comparison.hoursOutsideDelta > 0
+                                    ? "#c53828"
+                                    : "#68808f",
+                                fontWeight: 700,
+                              }}
+                            >
+                              {evaluation.comparison.hoursOutsideDelta > 0 ? "+" : ""}
+                              {evaluation.comparison.hoursOutsideDelta} hours
+                            </small>
+                          </div>
+
+                          <div className="eval-metric-cell">
+                            <span>Peak Heating Demand</span>
+                            <strong>
+                              {evaluation.comparison.baselinePeakHeatingW.toFixed(0)} W → {evaluation.comparison.candidatePeakHeatingW.toFixed(0)} W
+                            </strong>
+                            <small style={{ color: "#68808f" }}>
+                              {evaluation.comparison.peakHeatingDeltaW > 0 ? "+" : ""}
+                              {evaluation.comparison.peakHeatingDeltaW.toFixed(0)} W
+                            </small>
+                          </div>
+
+                          <div className="eval-metric-cell">
+                            <span>Indoor Temperature Range</span>
+                            <strong>
+                              {evaluation.comparison.candidateMinIndoorTemp.toFixed(1)}°C — {evaluation.comparison.candidatePeakIndoorTemp.toFixed(1)}°C
+                            </strong>
+                            <small style={{ color: "#68808f" }}>
+                              Baseline: {evaluation.comparison.baselineMinIndoorTemp.toFixed(1)}°C — {evaluation.comparison.baselinePeakIndoorTemp.toFixed(1)}°C
+                            </small>
+                          </div>
+                        </div>
+
+                        {/* Explainable Impact Statement */}
+                        <div className="eval-explanation-banner">
+                          <Check aria-hidden className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                          <span>{evaluation.comparison.explanation}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Action Bar */}
+                    <div className="fix-card-actions">
+                      <button
+                        type="button"
+                        className="primary-button fix-eval-btn"
+                        onClick={() => handleEvaluateFix(candidate)}
+                        disabled={isEvaluating}
+                      >
+                        {isEvaluating ? (
+                          <>
+                            <RefreshCw aria-hidden className="spin w-3.5 h-3.5" />
+                            <span>Simulating on Server...</span>
+                          </>
+                        ) : evaluation ? (
+                          <>
+                            <RefreshCw aria-hidden className="w-3.5 h-3.5" />
+                            <span>Re-Evaluate Fix</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play aria-hidden className="w-3.5 h-3.5" />
+                            <span>Evaluate Fix with Backend Engine</span>
+                          </>
+                        )}
+                      </button>
+
+                      {evaluation && (
+                        <button
+                          type="button"
+                          className="secondary-button"
+                          onClick={() => handleApplyFix(candidate, evaluation)}
+                        >
+                          <Check aria-hidden className="w-3.5 h-3.5" />
+                          <span>Apply Fix to Active Design</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* 5. Two-Column Analysis Grid (Stage 8 Breakdown & Assumptions) */}
       <div className="climate-layout" style={{ marginTop: "18px" }}>
         {/* Left Column: Likely Thermal Contributors */}
         <section className="climate-panel selection-panel">

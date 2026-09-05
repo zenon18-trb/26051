@@ -244,6 +244,53 @@ button { font: inherit; }
 .contributor-meaning { display: block; font-size: 10px; font-weight: 600; color: #738b99; }
 .contributor-evidence { margin: 2px 0 0; font-size: 11px; color: #506977; line-height: 1.4; }
 
+/* Stage 9 Potential Design Interventions */
+.stable-fixes-card { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border: 1px solid #cce8d6; border-radius: 7px; background: #f2faf5; color: #166534; }
+.stable-icon-wrap { width: 36px; height: 36px; border-radius: 50%; background: #dcfce7; display: grid; place-items: center; color: #15803d; flex: 0 0 36px; }
+.stable-icon-wrap svg { width: 20px; height: 20px; }
+.stable-fixes-content strong { display: block; font-size: 13px; color: #14532d; }
+.stable-fixes-content p { margin: 2px 0 0; font-size: 11px; color: #276749; line-height: 1.4; }
+
+.fixes-intro-note { display: flex; gap: 8px; align-items: flex-start; padding: 9px 12px; border-radius: 6px; background: #f0f7fb; border: 1px solid #d4e7f3; font-size: 11px; color: #235c7e; line-height: 1.45; }
+
+.fix-candidate-card { border: 1px solid #dfe8ee; border-radius: 8px; background: #fff; padding: 16px; transition: border-color .15s, box-shadow .15s; }
+.fix-candidate-card:hover { border-color: #85b0c7; }
+.fix-card-evaluated { border-color: #72a8c3; box-shadow: 0 2px 8px rgba(18, 49, 75, .05); }
+
+.fix-card-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-bottom: 10px; border-bottom: 1px solid #edf2f5; flex-wrap: wrap; }
+.fix-title-wrap { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.fix-priority-badge { font-size: 9px; font-weight: 800; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; background: #eef4f8; color: #245e7f; letter-spacing: .05em; }
+.fix-title-wrap h3 { margin: 0; font-size: 14px; color: var(--navy); }
+
+.fix-eval-badge { font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 5px; }
+.badge-unevaluated { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+.badge-evaluating { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.badge-outcome-improves { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+.badge-outcome-worsens { background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; }
+.badge-outcome-neutral { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
+
+.fix-params-row { display: flex; align-items: center; gap: 16px; margin-top: 12px; padding: 10px 14px; border-radius: 6px; background: #f8fafc; border: 1px solid #edf2f7; flex-wrap: wrap; }
+.fix-param-col { display: flex; flex-direction: column; gap: 2px; }
+.param-label { font-size: 9px; text-transform: uppercase; font-weight: 700; color: #8298a5; letter-spacing: .05em; }
+.param-val { font-size: 12px; color: var(--navy); }
+.fix-arrow-col { display: grid; place-items: center; color: #94aab7; }
+.fix-arrow-col svg { width: 15px; height: 15px; }
+
+.fix-rationale-text { margin: 10px 0 0; font-size: 11px; color: #57707e; line-height: 1.45; }
+
+.evaluation-results-box { margin-top: 12px; padding: 12px 14px; border-radius: 6px; background: #fafcfe; border: 1px solid #d9e8f0; }
+.eval-results-heading { font-size: 11px; color: #1e5c80; margin-bottom: 8px; }
+.eval-metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.eval-metric-cell { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 5px; background: #fff; border: 1px solid #e2ecf2; }
+.eval-metric-cell span { font-size: 9px; text-transform: uppercase; font-weight: 700; color: #7f97a5; letter-spacing: .05em; }
+.eval-metric-cell strong { font-size: 12px; color: var(--navy); }
+.eval-metric-cell small { font-size: 10px; line-height: 1.2; }
+
+.eval-explanation-banner { display: flex; gap: 8px; align-items: flex-start; margin-top: 10px; padding: 8px 10px; border-radius: 5px; background: #effbf4; border: 1px solid #bcead0; color: #166534; font-size: 11px; line-height: 1.4; }
+
+.fix-card-actions { display: flex; gap: 10px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
+.fix-eval-btn { margin-top: 0; display: inline-flex; align-items: center; gap: 6px; font-size: 11px; padding: 8px 14px; }
+
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (max-width: 850px) { .sidebar { width: 76px; flex-basis: 76px; }.sidebar-brand { padding: 20px 19px; }.sidebar-section-label { font-size: 0; height: 28px; }.nav-item span, .collapse-button span, .brand-title, .brand-subtitle { display: none; }.content-area { padding: 32px 24px 48px; }.topbar { padding: 0 24px; }.user-name { display: none; }.workflow-grid { grid-template-columns: 1fr; }.workflow-card { min-height: 150px; }.lower-grid { grid-template-columns: 1fr; }.climate-layout { grid-template-columns: 1fr; }.geometry-inputs-grid { grid-template-columns: 1fr; }.materials-catalog-layout { grid-template-columns: 1fr; } }
 @media (max-width: 560px) { .sidebar { display: none; }.mobile-menu { display: block; }.topbar-right { gap: 10px; }.env-badge { display: none; }.content-area { padding: 28px 18px 40px; }.page-heading { flex-direction: column; gap: 14px; }.footer { padding: 16px 18px; flex-direction: column; gap: 6px; }.geometry-presets-grid { grid-template-columns: 1fr; }.assembly-target-switch { grid-template-columns: 1fr; }.material-quick-actions { flex-direction: column; } }
