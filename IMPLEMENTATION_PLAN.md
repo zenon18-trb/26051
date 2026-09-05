@@ -437,3 +437,19 @@ Demo reliability.
 - **Day 4:** Phase 5, Phase 7, Phase 8
 
 Protect Day 3 dashboard above Day 4 comparison polish.
+
+---
+
+## Stage 8 — Thermal Failure Detection & Explainable Diagnosis
+
+**Status:** COMPLETE
+
+**Design Principles & Boundaries**:
+- **Deterministic Rule-Based Engine**: Completely derived from `SimulationResponse` returned by `POST /api/simulate`. No ML models, no LLM hallucinations, and no duplicate frontend physics loops.
+- **Diagnostic vs Prescriptive**: Identifies *when* and *by how much* comfort bounds are exceeded and ranks *dominant heat-flow contributors*, without prescribing automated design alterations (reserved for subsequent stages).
+- **Product Diagnostic Thresholds**:
+  - `GOOD`: 0 hours outside user comfort band (100% comfort).
+  - `WARNING`: 1–25% of hours outside comfort band.
+  - `CRITICAL`: >25% of hours outside comfort band.
+  *(These thresholds represent product-level user guidance thresholds and must never be cited as DRDO statutory standards or physical laws).*
+- **Wording Standard**: Dominant thermal drivers are documented as `"Likely contributors"` with measurable peak Watts evidence.
