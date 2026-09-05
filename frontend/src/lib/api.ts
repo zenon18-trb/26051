@@ -100,3 +100,13 @@ export async function fetchClimate(lat: number, lon: number, presetId?: string):
   }
   return payload;
 }
+
+export type CardinalOrientation = "North" | "East" | "South" | "West";
+
+export type ShelterGeometry = {
+  length_m: number;
+  width_m: number;
+  height_m: number;
+  orientation?: CardinalOrientation;
+};
+

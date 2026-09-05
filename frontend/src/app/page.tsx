@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { LocationClimate } from "@/components/LocationClimate";
+import { ShelterConfiguration } from "@/components/ShelterConfiguration";
 import { useShelterConfiguration } from "@/context/ShelterConfigurationContext";
 import {
   Activity,
@@ -36,7 +37,7 @@ const navigation = [
 export default function Home() {
   const [activeItem, setActiveItem] = useState("Dashboard");
   const [collapsed, setCollapsed] = useState(false);
-  const { climate } = useShelterConfiguration();
+  const { climate, geometry, location } = useShelterConfiguration();
 
   return (
     <div className="app-shell">
@@ -48,7 +49,12 @@ export default function Home() {
         <div className="sidebar-section-label">WORKSPACE</div>
         <nav className="sidebar-nav" aria-label="Primary navigation">
           {navigation.map(({ label, icon: Icon }) => (
-            <button key={label} className={`nav-item ${activeItem === label ? "nav-item-active" : ""}`} onClick={() => setActiveItem(label)} title={collapsed ? label : undefined}>
+            <button
+              key={label}
+              className={`nav-item ${activeItem === label ? "nav-item-active" : ""}`}
+              onClick={() => setActiveItem(label)}
+              title={collapsed ? label : undefined}
+            >
               <Icon aria-hidden /><span>{!collapsed && label}</span>
             </button>
           ))}
@@ -67,7 +73,21 @@ export default function Home() {
         </header>
 
         <main className="content-area">
-          {activeItem === "Location Climate" ? <LocationClimate /> : <DashboardHome climateConfigured={Boolean(climate)} onBegin={() => setActiveItem("Location Climate")} />}
+          {activeItem === "Location Climate" && <LocationClimate />}
+          {activeItem === "Shelter Configuration" && <ShelterConfiguration />}
+          {activeItem !== "Location Climate" && activeItem !== "Shelter Configuration" && (
+            <DashboardHome
+              climateConfigured={Boolean(climate)}
+              geometryConfigured={Boolean(geometry)}
+              locationName={location?.preset?.name}
+              geometrySummary={
+                geometry
+                  ? `${geometry.length_m}m × ${geometry.width_m}m × ${geometry.height_m}m (${geometry.orientation ?? "North"})`
+                  : undefined
+              }
+              onNavigate={(item) => setActiveItem(item)}
+            />
+          )}
         </main>
         <footer className="footer"><span>DRDO Thermal Analysis Initiative · Internal prototype</span><span>Data stays in your workspace</span></footer>
       </div>
@@ -75,17 +95,173 @@ export default function Home() {
   );
 }
 
-function DashboardHome({ climateConfigured, onBegin }: { climateConfigured: boolean; onBegin: () => void }) {
-  return <>
-          <div className="page-heading"><div><p className="eyebrow">SIH26051 · THERMAL ANALYSIS WORKSPACE</p><h1>Welcome to Shelter Thermal Designer</h1><p className="page-description">Configure your shelter design and run area-specific thermal analysis for extreme environments.</p></div><div className="prototype-tag"><ShieldCheck aria-hidden /> Prototype v0.1</div></div>
-          <div className="notice"><ShieldCheck aria-hidden /><div><strong>First-order estimation tool</strong><p>This workspace provides engineering estimates for early-stage design decisions. Results are not a substitute for CFD, EnergyPlus, or certification models.</p></div></div>
+function DashboardHome({
+  climateConfigured,
+  geometryConfigured,
+  locationName,
+  geometrySummary,
+  onNavigate,
+}: {
+  climateConfigured: boolean;
+  geometryConfigured: boolean;
+  locationName?: string;
+  geometrySummary?: string;
+  onNavigate: (item: string) => void;
+}) {
+  const completedCount = (climateConfigured ? 1 : 0) + (geometryConfigured ? 1 : 0);
 
-          <section className="section-block"><div className="section-heading"><div><h2>Design workflow</h2><p>Complete each step to prepare your thermal analysis.</p></div><span className="progress-copy">{climateConfigured ? "1 of 3 complete" : "0 of 3 complete"}</span></div><div className="workflow-grid"><WorkflowCard number="01" icon={<CloudSun aria-hidden />} title="Location Climate" description={climateConfigured ? "Climate profile configured and ready." : "Select a location and review climate parameters."} configured={climateConfigured} onClick={onBegin} /><WorkflowCard number="02" icon={<Box aria-hidden />} title="Shelter Configuration" description="Define dimensions, orientation, and envelope layers." /><WorkflowCard number="03" icon={<Activity aria-hidden />} title="Run Analysis" description="Simulate 24-hour heat flow and review results." /></div></section>
+  return (
+    <>
+      <div className="page-heading">
+        <div>
+          <p className="eyebrow">SIH26051 · THERMAL ANALYSIS WORKSPACE</p>
+          <h1>Welcome to Shelter Thermal Designer</h1>
+          <p className="page-description">
+            Configure your shelter design and run area-specific thermal analysis for extreme environments.
+          </p>
+        </div>
+        <div className="prototype-tag"><ShieldCheck aria-hidden /> Prototype v0.1</div>
+      </div>
+      <div className="notice">
+        <ShieldCheck aria-hidden />
+        <div>
+          <strong>First-order estimation tool</strong>
+          <p>This workspace provides engineering estimates for early-stage design decisions. Results are not a substitute for CFD, EnergyPlus, or certification models.</p>
+        </div>
+      </div>
 
-          <section className="lower-grid"><div className="panel"><div className="panel-heading"><div><h2>System status</h2><p>Live connectivity and service health</p></div><span className="status-live"><span className="live-dot" />Live</span></div><SystemStatus /></div><div className="panel session-panel"><div className="panel-heading"><div><h2>Current project</h2><p>Your active design workspace</p></div><ClipboardList aria-hidden /></div><div className="empty-project">{climateConfigured ? <><div className="empty-icon"><CheckCircle2 aria-hidden /></div><h3>Location configured</h3><p>Your climate profile is ready for shelter configuration.</p><button className="primary-button" onClick={onBegin}>Review climate data</button></> : <><div className="empty-icon"><Box aria-hidden /></div><h3>No project configured</h3><p>Start by selecting a location climate to create your first thermal design.</p><button className="primary-button" onClick={onBegin}>Begin configuration</button></>}</div></div></section>
-        </>;
+      <section className="section-block">
+        <div className="section-heading">
+          <div>
+            <h2>Design workflow</h2>
+            <p>Complete each step to prepare your thermal analysis.</p>
+          </div>
+          <span className="progress-copy">{completedCount} of 3 complete</span>
+        </div>
+        <div className="workflow-grid">
+          <WorkflowCard
+            number="01"
+            icon={<CloudSun aria-hidden />}
+            title="Location Climate"
+            description={climateConfigured ? (locationName ? `${locationName} climate configured.` : "Climate profile configured.") : "Select a location and review climate parameters."}
+            configured={climateConfigured}
+            onClick={() => onNavigate("Location Climate")}
+          />
+          <WorkflowCard
+            number="02"
+            icon={<Box aria-hidden />}
+            title="Shelter Configuration"
+            description={geometryConfigured ? (geometrySummary ?? "Geometry configured.") : "Define dimensions, orientation, and envelope layers."}
+            configured={geometryConfigured}
+            onClick={() => onNavigate("Shelter Configuration")}
+          />
+          <WorkflowCard
+            number="03"
+            icon={<Activity aria-hidden />}
+            title="Run Analysis"
+            description="Simulate 24-hour heat flow and review results."
+            configured={false}
+          />
+        </div>
+      </section>
+
+      <section className="lower-grid">
+        <div className="panel">
+          <div className="panel-heading">
+            <div>
+              <h2>System status</h2>
+              <p>Live connectivity and service health</p>
+            </div>
+            <span className="status-live"><span className="live-dot" />Live</span>
+          </div>
+          <SystemStatus />
+        </div>
+        <div className="panel session-panel">
+          <div className="panel-heading">
+            <div>
+              <h2>Current project</h2>
+              <p>Your active design workspace</p>
+            </div>
+            <ClipboardList aria-hidden />
+          </div>
+          <div className="empty-project">
+            {climateConfigured && geometryConfigured ? (
+              <>
+                <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
+                <h3>Location &amp; Geometry Configured</h3>
+                <p>
+                  {locationName ? `${locationName} · ` : ""}
+                  {geometrySummary}
+                </p>
+                <button className="primary-button" onClick={() => onNavigate("Shelter Configuration")}>
+                  Review configuration
+                </button>
+              </>
+            ) : climateConfigured ? (
+              <>
+                <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
+                <h3>Location configured</h3>
+                <p>Your climate profile is ready. Next, configure shelter geometry dimensions.</p>
+                <button className="primary-button" onClick={() => onNavigate("Shelter Configuration")}>
+                  Configure geometry
+                </button>
+              </>
+            ) : geometryConfigured ? (
+              <>
+                <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
+                <h3>Geometry configured</h3>
+                <p>Shelter dimensions are set. Next, select a location to load climate data.</p>
+                <button className="primary-button" onClick={() => onNavigate("Location Climate")}>
+                  Select location climate
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="empty-icon"><Box aria-hidden /></div>
+                <h3>No project configured</h3>
+                <p>Start by selecting a location climate to create your first thermal design.</p>
+                <button className="primary-button" onClick={() => onNavigate("Location Climate")}>
+                  Begin configuration
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </section>
+    </>
+  );
 }
 
-function WorkflowCard({ number, icon, title, description, configured = false, onClick }: { number: string; icon: ReactNode; title: string; description: string; configured?: boolean; onClick?: () => void }) {
-  return <button className={`workflow-card ${configured ? "workflow-card-configured" : ""}`} onClick={onClick}><div className="card-topline"><span className="step-number">{number}</span><span className="card-icon">{icon}</span></div><h3>{title}</h3><p>{description}</p><span className="card-action">{configured ? "Configured" : "Configure"} <span aria-hidden>→</span></span></button>;
+function WorkflowCard({
+  number,
+  icon,
+  title,
+  description,
+  configured = false,
+  onClick,
+}: {
+  number: string;
+  icon: ReactNode;
+  title: string;
+  description: string;
+  configured?: boolean;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      className={`workflow-card ${configured ? "workflow-card-configured" : ""}`}
+      onClick={onClick}
+    >
+      <div className="card-topline">
+        <span className="step-number">{number}</span>
+        <span className="card-icon">{icon}</span>
+      </div>
+      <h3>{title}</h3>
+      <p>{description}</p>
+      <span className="card-action">
+        {configured ? "Configured" : "Configure"} <span aria-hidden>→</span>
+      </span>
+    </button>
+  );
 }
+
