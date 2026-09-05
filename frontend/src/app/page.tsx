@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { LocationClimate } from "@/components/LocationClimate";
 import { ShelterConfiguration } from "@/components/ShelterConfiguration";
+import { MaterialsLibrary } from "@/components/MaterialsLibrary";
 import { useShelterConfiguration } from "@/context/ShelterConfigurationContext";
 import {
   Activity,
@@ -21,6 +22,7 @@ import {
   ShieldCheck,
   Thermometer,
   CheckCircle2,
+  Layers,
 } from "lucide-react";
 
 import { SystemStatus } from "@/components/SystemStatus";
@@ -37,7 +39,8 @@ const navigation = [
 export default function Home() {
   const [activeItem, setActiveItem] = useState("Dashboard");
   const [collapsed, setCollapsed] = useState(false);
-  const { climate, geometry, location } = useShelterConfiguration();
+  const { climate, geometry, location, wallLayers, roofLayers, isMaterialsConfigured } =
+    useShelterConfiguration();
 
   return (
     <div className="app-shell">
@@ -75,19 +78,25 @@ export default function Home() {
         <main className="content-area">
           {activeItem === "Location Climate" && <LocationClimate />}
           {activeItem === "Shelter Configuration" && <ShelterConfiguration />}
-          {activeItem !== "Location Climate" && activeItem !== "Shelter Configuration" && (
-            <DashboardHome
-              climateConfigured={Boolean(climate)}
-              geometryConfigured={Boolean(geometry)}
-              locationName={location?.preset?.name}
-              geometrySummary={
-                geometry
-                  ? `${geometry.length_m}m × ${geometry.width_m}m × ${geometry.height_m}m (${geometry.orientation ?? "North"})`
-                  : undefined
-              }
-              onNavigate={(item) => setActiveItem(item)}
-            />
-          )}
+          {activeItem === "Materials Library" && <MaterialsLibrary />}
+          {activeItem !== "Location Climate" &&
+            activeItem !== "Shelter Configuration" &&
+            activeItem !== "Materials Library" && (
+              <DashboardHome
+                climateConfigured={Boolean(climate)}
+                geometryConfigured={Boolean(geometry)}
+                materialsConfigured={isMaterialsConfigured}
+                locationName={location?.preset?.name}
+                wallLayersCount={wallLayers.length}
+                roofLayersCount={roofLayers.length}
+                geometrySummary={
+                  geometry
+                    ? `${geometry.length_m}m × ${geometry.width_m}m × ${geometry.height_m}m (${geometry.orientation ?? "North"})`
+                    : undefined
+                }
+                onNavigate={(item) => setActiveItem(item)}
+              />
+            )}
         </main>
         <footer className="footer"><span>DRDO Thermal Analysis Initiative · Internal prototype</span><span>Data stays in your workspace</span></footer>
       </div>
@@ -98,17 +107,26 @@ export default function Home() {
 function DashboardHome({
   climateConfigured,
   geometryConfigured,
+  materialsConfigured,
   locationName,
+  wallLayersCount,
+  roofLayersCount,
   geometrySummary,
   onNavigate,
 }: {
   climateConfigured: boolean;
   geometryConfigured: boolean;
+  materialsConfigured: boolean;
   locationName?: string;
+  wallLayersCount: number;
+  roofLayersCount: number;
   geometrySummary?: string;
   onNavigate: (item: string) => void;
 }) {
-  const completedCount = (climateConfigured ? 1 : 0) + (geometryConfigured ? 1 : 0);
+  const completedCount =
+    (climateConfigured ? 1 : 0) +
+    (geometryConfigured ? 1 : 0) +
+    (materialsConfigured ? 1 : 0);
 
   return (
     <>
@@ -150,17 +168,22 @@ function DashboardHome({
           <WorkflowCard
             number="02"
             icon={<Box aria-hidden />}
-            title="Shelter Configuration"
-            description={geometryConfigured ? (geometrySummary ?? "Geometry configured.") : "Define dimensions, orientation, and envelope layers."}
+            title="Shelter Geometry"
+            description={geometryConfigured ? (geometrySummary ?? "Geometry configured.") : "Define dimensions and physical orientation."}
             configured={geometryConfigured}
             onClick={() => onNavigate("Shelter Configuration")}
           />
           <WorkflowCard
             number="03"
-            icon={<Activity aria-hidden />}
-            title="Run Analysis"
-            description="Simulate 24-hour heat flow and review results."
-            configured={false}
+            icon={<Layers aria-hidden />}
+            title="Materials &amp; Envelope"
+            description={
+              materialsConfigured
+                ? `Wall: ${wallLayersCount} layers · Roof: ${roofLayersCount} layers`
+                : "Select materials and build wall/roof assemblies."
+            }
+            configured={materialsConfigured}
+            onClick={() => onNavigate("Materials Library")}
           />
         </div>
       </section>
@@ -185,16 +208,28 @@ function DashboardHome({
             <ClipboardList aria-hidden />
           </div>
           <div className="empty-project">
-            {climateConfigured && geometryConfigured ? (
+            {climateConfigured && geometryConfigured && materialsConfigured ? (
+              <>
+                <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
+                <h3>Envelope Ready for Simulation</h3>
+                <p>
+                  {locationName ? `${locationName} · ` : ""}
+                  {geometrySummary} · {wallLayersCount} wall / {roofLayersCount} roof layers
+                </p>
+                <button className="primary-button" onClick={() => onNavigate("Materials Library")}>
+                  Review envelope assembly
+                </button>
+              </>
+            ) : climateConfigured && geometryConfigured ? (
               <>
                 <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
                 <h3>Location &amp; Geometry Configured</h3>
                 <p>
                   {locationName ? `${locationName} · ` : ""}
-                  {geometrySummary}
+                  {geometrySummary}. Next, configure materials and envelope assemblies.
                 </p>
-                <button className="primary-button" onClick={() => onNavigate("Shelter Configuration")}>
-                  Review configuration
+                <button className="primary-button" onClick={() => onNavigate("Materials Library")}>
+                  Configure envelope materials
                 </button>
               </>
             ) : climateConfigured ? (
@@ -264,4 +299,5 @@ function WorkflowCard({
     </button>
   );
 }
+
 

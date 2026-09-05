@@ -110,3 +110,99 @@ export type ShelterGeometry = {
   orientation?: CardinalOrientation;
 };
 
+export type MaterialItem = {
+  id: string;
+  name: string;
+  category: string;
+  k: number;
+  thermal_conductivity: number;
+  density: number;
+  specific_heat: number;
+  typical_thickness: number;
+  relative_cost: string;
+  relative_weight: string;
+  confidence: string;
+  source: string;
+  notes: string;
+};
+
+export type MaterialLayer = {
+  material_id: string;
+  thickness_m: number;
+};
+
+export async function fetchMaterials(): Promise<MaterialItem[]> {
+  const payload = await fetchJson<{ materials: MaterialItem[] }>("/api/materials");
+  if (!Array.isArray(payload.materials) || payload.materials.length === 0) {
+    throw new Error("The API returned no materials.");
+  }
+  return payload.materials;
+}
+
+export type AssemblyMetrics = {
+  layerCount: number;
+  totalThicknessMm: number;
+  totalThicknessM: number;
+  rTotal: number;
+  uValue: number;
+  layerResistances: { layerIndex: number; materialName: string; rValue: number }[];
+};
+
+export function calculateAssemblyMetrics(
+  layers: MaterialLayer[],
+  materialsMap: Map<string, MaterialItem>,
+  rSi: number,
+  rSo: number = 0.04
+): AssemblyMetrics | null {
+  if (!layers.length) return null;
+
+  let totalThicknessM = 0;
+  let sumLayerR = 0;
+  const layerResistances: { layerIndex: number; materialName: string; rValue: number }[] = [];
+
+  for (let i = 0; i < layers.length; i++) {
+    const layer = layers[i];
+    if (layer.thickness_m <= 0) return null;
+    const mat = materialsMap.get(layer.material_id);
+    if (!mat || mat.k <= 0) return null;
+
+    const rLayer = layer.thickness_m / mat.k;
+    totalThicknessM += layer.thickness_m;
+    sumLayerR += rLayer;
+    layerResistances.push({
+      layerIndex: i,
+      materialName: mat.name,
+      rValue: rLayer,
+    });
+  }
+
+  const rTotal = rSi + sumLayerR + rSo;
+  const uValue = rTotal > 0 ? 1.0 / rTotal : 0;
+
+  return {
+    layerCount: layers.length,
+    totalThicknessMm: totalThicknessM * 1000,
+    totalThicknessM,
+    rTotal,
+    uValue,
+    layerResistances,
+  };
+}
+
+export function calculateWallAssemblyMetrics(
+  layers: MaterialLayer[],
+  materialsMap: Map<string, MaterialItem>
+): AssemblyMetrics | null {
+  // Inside surface resistance for vertical walls R_si = 0.13 m²·K/W, outside R_so = 0.04 m²·K/W
+  return calculateAssemblyMetrics(layers, materialsMap, 0.13, 0.04);
+}
+
+export function calculateRoofAssemblyMetrics(
+  layers: MaterialLayer[],
+  materialsMap: Map<string, MaterialItem>
+): AssemblyMetrics | null {
+  // Inside surface resistance for horizontal/roof R_si = 0.10 m²·K/W, outside R_so = 0.04 m²·K/W
+  return calculateAssemblyMetrics(layers, materialsMap, 0.10, 0.04);
+}
+
+
