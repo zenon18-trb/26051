@@ -300,5 +300,24 @@ export function calculateOccupantMetrics(count: number): OccupantsMetrics {
   };
 }
 
+export type ComfortBand = {
+  t_low_c: number;
+  t_high_c: number;
+};
+
+export const DEFAULT_COMFORT_BAND: ComfortBand = {
+  t_low_c: 18.0,
+  t_high_c: 26.0,
+};
+
+export type HvacMode = "floating" | "setpoint";
+
+export type HvacConfig = {
+  mode: HvacMode;
+  setpoint_c: number | null;
+  t_in_initial_c: number | null;
+  comfort_band: ComfortBand;
+};
+
 
 

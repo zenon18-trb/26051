@@ -6,6 +6,7 @@ import { ShelterConfiguration } from "@/components/ShelterConfiguration";
 import { MaterialsLibrary } from "@/components/MaterialsLibrary";
 import { WindowsGlazing } from "@/components/WindowsGlazing";
 import { VentilationOccupants } from "@/components/VentilationOccupants";
+import { HvacThermalControl } from "@/components/HvacThermalControl";
 import { useShelterConfiguration } from "@/context/ShelterConfigurationContext";
 import {
   Activity,
@@ -16,6 +17,7 @@ import {
   CloudSun,
   Download,
   FlaskConical,
+  Gauge,
   HelpCircle,
   LayoutDashboard,
   Menu,
@@ -38,6 +40,7 @@ const navigation = [
   { label: "Materials Library", icon: FlaskConical },
   { label: "Windows & Glazing", icon: AppWindow },
   { label: "Ventilation & Occupants", icon: Wind },
+  { label: "HVAC & Thermal Control", icon: Gauge },
   { label: "Analysis", icon: Activity },
   { label: "Reports", icon: ClipboardList },
 ];
@@ -54,11 +57,13 @@ export default function Home() {
     windows,
     vents,
     occupants,
+    hvac,
     isMaterialsConfigured,
     isWindowsConfigured,
     isVentilationConfigured,
     isOccupantsConfigured,
     isVentilationAndOccupantsConfigured,
+    isHvacConfigured,
   } = useShelterConfiguration();
 
   return (
@@ -100,11 +105,13 @@ export default function Home() {
           {activeItem === "Materials Library" && <MaterialsLibrary />}
           {activeItem === "Windows & Glazing" && <WindowsGlazing />}
           {activeItem === "Ventilation & Occupants" && <VentilationOccupants />}
+          {activeItem === "HVAC & Thermal Control" && <HvacThermalControl />}
           {activeItem !== "Location Climate" &&
             activeItem !== "Shelter Configuration" &&
             activeItem !== "Materials Library" &&
             activeItem !== "Windows & Glazing" &&
-            activeItem !== "Ventilation & Occupants" && (
+            activeItem !== "Ventilation & Occupants" &&
+            activeItem !== "HVAC & Thermal Control" && (
               <DashboardHome
                 climateConfigured={Boolean(climate)}
                 geometryConfigured={Boolean(geometry)}
@@ -113,6 +120,9 @@ export default function Home() {
                 ventilationConfigured={isVentilationConfigured}
                 occupantsConfigured={isOccupantsConfigured}
                 stage5Configured={isVentilationAndOccupantsConfigured}
+                hvacConfigured={isHvacConfigured}
+                hvacMode={hvac?.mode}
+                hvacSetpoint={hvac?.setpoint_c}
                 ventsOpen={vents?.open}
                 occupantsCount={occupants}
                 windowArea={windows?.area_m2}
@@ -140,6 +150,9 @@ function DashboardHome({
   materialsConfigured,
   windowsConfigured,
   stage5Configured,
+  hvacConfigured,
+  hvacMode,
+  hvacSetpoint,
   ventsOpen,
   occupantsCount,
   windowArea,
@@ -156,6 +169,9 @@ function DashboardHome({
   ventilationConfigured?: boolean;
   occupantsConfigured?: boolean;
   stage5Configured: boolean;
+  hvacConfigured: boolean;
+  hvacMode?: "floating" | "setpoint";
+  hvacSetpoint?: number | null;
   ventsOpen?: boolean;
   occupantsCount?: number | null;
   windowArea?: number;
@@ -170,7 +186,8 @@ function DashboardHome({
     (geometryConfigured ? 1 : 0) +
     (materialsConfigured ? 1 : 0) +
     (windowsConfigured ? 1 : 0) +
-    (stage5Configured ? 1 : 0);
+    (stage5Configured ? 1 : 0) +
+    (hvacConfigured ? 1 : 0);
 
   return (
     <>
@@ -198,7 +215,7 @@ function DashboardHome({
             <h2>Design workflow</h2>
             <p>Complete each step to prepare your thermal analysis.</p>
           </div>
-          <span className="progress-copy">{completedCount} of 5 complete</span>
+          <span className="progress-copy">{completedCount} of 6 complete</span>
         </div>
         <div className="workflow-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
           <WorkflowCard
@@ -253,6 +270,20 @@ function DashboardHome({
             configured={stage5Configured}
             onClick={() => onNavigate("Ventilation & Occupants")}
           />
+          <WorkflowCard
+            number="06"
+            icon={<Gauge aria-hidden />}
+            title="HVAC &amp; Control"
+            description={
+              hvacConfigured
+                ? hvacMode === "setpoint"
+                  ? `Setpoint: ${hvacSetpoint !== null && hvacSetpoint !== undefined ? hvacSetpoint.toFixed(1) : "--"} °C`
+                  : "Floating (0 W HVAC)"
+                : "Choose floating temperature or setpoint mode."
+            }
+            configured={hvacConfigured}
+            onClick={() => onNavigate("HVAC & Thermal Control")}
+          />
         </div>
       </section>
 
@@ -276,17 +307,30 @@ function DashboardHome({
             <ClipboardList aria-hidden />
           </div>
           <div className="empty-project">
-            {climateConfigured && geometryConfigured && materialsConfigured && windowsConfigured && stage5Configured ? (
+            {climateConfigured && geometryConfigured && materialsConfigured && windowsConfigured && stage5Configured && hvacConfigured ? (
               <>
                 <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
                 <h3>Complete Shelter Model Ready for Simulation</h3>
                 <p>
                   {locationName ? `${locationName} · ` : ""}
                   {geometrySummary} · {windowArea !== undefined ? windowArea.toFixed(1) : "0.0"} m² glazing ·{" "}
-                  {ventsOpen ? "5.0 ACH Open" : "0.5 ACH Closed"} · {occupantsCount ?? 0} occupants
+                  {ventsOpen ? "5.0 ACH Open" : "0.5 ACH Closed"} · {occupantsCount ?? 0} occupants ·{" "}
+                  {hvacMode === "setpoint" ? `Setpoint ${hvacSetpoint?.toFixed(1)} °C` : "Floating Drift (0 W HVAC)"}
                 </p>
-                <button className="primary-button" onClick={() => onNavigate("Ventilation & Occupants")}>
-                  Review ventilation &amp; occupancy
+                <button className="primary-button" onClick={() => onNavigate("HVAC & Thermal Control")}>
+                  Review HVAC configuration
+                </button>
+              </>
+            ) : climateConfigured && geometryConfigured && materialsConfigured && windowsConfigured && stage5Configured ? (
+              <>
+                <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
+                <h3>Shelter Envelope &amp; Occupancy Configured</h3>
+                <p>
+                  {locationName ? `${locationName} · ` : ""}
+                  {geometrySummary}. Next, configure HVAC operational mode and temperature setpoint.
+                </p>
+                <button className="primary-button" onClick={() => onNavigate("HVAC & Thermal Control")}>
+                  Configure HVAC &amp; setpoint
                 </button>
               </>
             ) : climateConfigured && geometryConfigured && materialsConfigured && windowsConfigured ? (
