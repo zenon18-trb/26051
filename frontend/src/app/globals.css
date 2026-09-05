@@ -204,6 +204,46 @@ button { font: inherit; }
 .kpi-value { font-size: 22px; font-weight: 800; line-height: 1.1; }
 .kpi-sub { font-size: 10px; color: #6e8492; margin-top: 2px; }
 
+
+/* Stage 8 Thermal Failure Detection & Diagnosis */
+.diagnosis-hero-banner { display: flex; gap: 16px; padding: 18px 20px; border: 1px solid; border-radius: 8px; margin-bottom: 6px; box-shadow: 0 1px 3px rgba(18, 49, 75, .04); }
+.diagnosis-hero-icon-wrap { width: 42px; height: 42px; border-radius: 8px; border: 1px solid; display: grid; place-items: center; background: #fff; flex: 0 0 42px; }
+.diagnosis-hero-content { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.diagnosis-hero-topline { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.diagnosis-site-pill { font-size: 11px; opacity: .85; }
+.diagnosis-site-pill strong { font-weight: 700; }
+.diagnosis-hero-title { margin: 2px 0 0; font-size: 16px; font-weight: 800; line-height: 1.3; }
+.diagnosis-hero-explanation { margin: 4px 0 0; font-size: 12px; line-height: 1.5; opacity: .9; }
+
+.diagnosis-badge { font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; letter-spacing: .06em; }
+.badge-good { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+.badge-warning { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+.badge-critical { background: #ffe4e6; color: #be123c; border: 1px solid #fecdd3; }
+
+.chart-legend { display: flex; gap: 14px; align-items: center; font-size: 11px; color: #627b8a; }
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-line { width: 14px; height: 3px; border-radius: 2px; }
+.line-indoor { background: #1b5e85; height: 3px; }
+.line-outdoor { background: #94aab7; height: 2px; border-top: 1px dashed #94aab7; }
+.legend-zone { width: 12px; height: 12px; border-radius: 2px; background: #edf7f0; border: 1px solid #c8e6d2; }
+
+.thresholds-note { display: flex; gap: 8px; align-items: flex-start; padding: 8px 12px; border-radius: 5px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 10px; color: #64748b; line-height: 1.45; }
+
+.contributors-list { display: flex; flex-direction: column; gap: 8px; }
+.contributor-item-card { border: 1px solid #e1eaf0; border-radius: 6px; background: #fff; padding: 10px 12px; transition: border-color .15s; }
+.contributor-item-card:hover { border-color: #8bb4cb; }
+.contributor-card-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.contributor-rank-title { display: flex; align-items: center; gap: 8px; }
+.contributor-rank-badge { font-size: 9px; font-weight: 800; padding: 2px 5px; border-radius: 3px; background: #f1f5f8; color: #486575; }
+.contributor-rank-title strong { font-size: 12px; color: var(--navy); }
+.contributor-direction-badge { font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 4px; }
+.badge-gain { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+.badge-loss { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.badge-neutral { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+.contributor-card-body { margin-top: 4px; }
+.contributor-meaning { display: block; font-size: 10px; font-weight: 600; color: #738b99; }
+.contributor-evidence { margin: 2px 0 0; font-size: 11px; color: #506977; line-height: 1.4; }
+
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (max-width: 850px) { .sidebar { width: 76px; flex-basis: 76px; }.sidebar-brand { padding: 20px 19px; }.sidebar-section-label { font-size: 0; height: 28px; }.nav-item span, .collapse-button span, .brand-title, .brand-subtitle { display: none; }.content-area { padding: 32px 24px 48px; }.topbar { padding: 0 24px; }.user-name { display: none; }.workflow-grid { grid-template-columns: 1fr; }.workflow-card { min-height: 150px; }.lower-grid { grid-template-columns: 1fr; }.climate-layout { grid-template-columns: 1fr; }.geometry-inputs-grid { grid-template-columns: 1fr; }.materials-catalog-layout { grid-template-columns: 1fr; } }
 @media (max-width: 560px) { .sidebar { display: none; }.mobile-menu { display: block; }.topbar-right { gap: 10px; }.env-badge { display: none; }.content-area { padding: 28px 18px 40px; }.page-heading { flex-direction: column; gap: 14px; }.footer { padding: 16px 18px; flex-direction: column; gap: 6px; }.geometry-presets-grid { grid-template-columns: 1fr; }.assembly-target-switch { grid-template-columns: 1fr; }.material-quick-actions { flex-direction: column; } }
