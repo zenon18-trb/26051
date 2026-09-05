@@ -30,7 +30,10 @@ export function SystemStatus() {
   }, []);
 
   useEffect(() => {
-    void requestHealth();
+    const timer = window.setTimeout(() => {
+      void requestHealth();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [requestHealth]);
 
   function handleCheckAgain() {
@@ -42,7 +45,7 @@ export function SystemStatus() {
   return (
     <section
       aria-labelledby="system-status-heading"
-      className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
+      className="status-card"
     >
       <div className="flex items-start justify-between gap-4">
         <div>
