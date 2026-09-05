@@ -205,4 +205,55 @@ export function calculateRoofAssemblyMetrics(
   return calculateAssemblyMetrics(layers, materialsMap, 0.10, 0.04);
 }
 
+export type WindowConfig = {
+  area_m2: number;
+  kind: "glazed" | "open";
+};
+
+export type WindowMetrics = {
+  area_m2: number;
+  kind: string;
+  grossWallArea: number | null;
+  floorArea: number | null;
+  netWallArea: number | null;
+  wwr_pct: number | null;
+  wfr_pct: number | null;
+  u_window: number;
+  tau: number;
+};
+
+export function calculateWindowMetrics(
+  area_m2: number,
+  grossWallArea: number | null,
+  floorArea: number | null,
+  kind: "glazed" | "open" = "glazed"
+): WindowMetrics {
+  // Glass: k = 0.96 W/(m·K), d = 0.006 m, R_so = 0.04, R_si = 0.13
+  // R_total = 0.13 + (0.006 / 0.96) + 0.04 = 0.17625 m²·K/W -> U = 5.674 W/(m²·K)
+  const u_window = kind === "glazed" ? 1.0 / (0.13 + 0.006 / 0.96 + 0.04) : 0;
+  const tau = kind === "glazed" ? 0.5 : 1.0;
+
+  const netWallArea =
+    grossWallArea !== null ? Math.max(0, grossWallArea - area_m2) : null;
+  const wwr_pct =
+    grossWallArea !== null && grossWallArea > 0
+      ? (area_m2 / grossWallArea) * 100
+      : null;
+  const wfr_pct =
+    floorArea !== null && floorArea > 0 ? (area_m2 / floorArea) * 100 : null;
+
+  return {
+    area_m2,
+    kind,
+    grossWallArea,
+    floorArea,
+    netWallArea,
+    wwr_pct,
+    wfr_pct,
+    u_window,
+    tau,
+  };
+}
+
+
 

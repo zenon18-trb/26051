@@ -4,9 +4,11 @@ import { useState, type ReactNode } from "react";
 import { LocationClimate } from "@/components/LocationClimate";
 import { ShelterConfiguration } from "@/components/ShelterConfiguration";
 import { MaterialsLibrary } from "@/components/MaterialsLibrary";
+import { WindowsGlazing } from "@/components/WindowsGlazing";
 import { useShelterConfiguration } from "@/context/ShelterConfigurationContext";
 import {
   Activity,
+  AppWindow,
   Box,
   ChevronDown,
   ClipboardList,
@@ -32,6 +34,7 @@ const navigation = [
   { label: "Location Climate", icon: CloudSun },
   { label: "Shelter Configuration", icon: Box },
   { label: "Materials Library", icon: FlaskConical },
+  { label: "Windows & Glazing", icon: AppWindow },
   { label: "Analysis", icon: Activity },
   { label: "Reports", icon: ClipboardList },
 ];
@@ -39,8 +42,16 @@ const navigation = [
 export default function Home() {
   const [activeItem, setActiveItem] = useState("Dashboard");
   const [collapsed, setCollapsed] = useState(false);
-  const { climate, geometry, location, wallLayers, roofLayers, isMaterialsConfigured } =
-    useShelterConfiguration();
+  const {
+    climate,
+    geometry,
+    location,
+    wallLayers,
+    roofLayers,
+    windows,
+    isMaterialsConfigured,
+    isWindowsConfigured,
+  } = useShelterConfiguration();
 
   return (
     <div className="app-shell">
@@ -79,13 +90,17 @@ export default function Home() {
           {activeItem === "Location Climate" && <LocationClimate />}
           {activeItem === "Shelter Configuration" && <ShelterConfiguration />}
           {activeItem === "Materials Library" && <MaterialsLibrary />}
+          {activeItem === "Windows & Glazing" && <WindowsGlazing />}
           {activeItem !== "Location Climate" &&
             activeItem !== "Shelter Configuration" &&
-            activeItem !== "Materials Library" && (
+            activeItem !== "Materials Library" &&
+            activeItem !== "Windows & Glazing" && (
               <DashboardHome
                 climateConfigured={Boolean(climate)}
                 geometryConfigured={Boolean(geometry)}
                 materialsConfigured={isMaterialsConfigured}
+                windowsConfigured={isWindowsConfigured}
+                windowArea={windows?.area_m2}
                 locationName={location?.preset?.name}
                 wallLayersCount={wallLayers.length}
                 roofLayersCount={roofLayers.length}
@@ -108,6 +123,8 @@ function DashboardHome({
   climateConfigured,
   geometryConfigured,
   materialsConfigured,
+  windowsConfigured,
+  windowArea,
   locationName,
   wallLayersCount,
   roofLayersCount,
@@ -117,6 +134,8 @@ function DashboardHome({
   climateConfigured: boolean;
   geometryConfigured: boolean;
   materialsConfigured: boolean;
+  windowsConfigured: boolean;
+  windowArea?: number;
   locationName?: string;
   wallLayersCount: number;
   roofLayersCount: number;
@@ -126,7 +145,8 @@ function DashboardHome({
   const completedCount =
     (climateConfigured ? 1 : 0) +
     (geometryConfigured ? 1 : 0) +
-    (materialsConfigured ? 1 : 0);
+    (materialsConfigured ? 1 : 0) +
+    (windowsConfigured ? 1 : 0);
 
   return (
     <>
@@ -154,9 +174,9 @@ function DashboardHome({
             <h2>Design workflow</h2>
             <p>Complete each step to prepare your thermal analysis.</p>
           </div>
-          <span className="progress-copy">{completedCount} of 3 complete</span>
+          <span className="progress-copy">{completedCount} of 4 complete</span>
         </div>
-        <div className="workflow-grid">
+        <div className="workflow-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
           <WorkflowCard
             number="01"
             icon={<CloudSun aria-hidden />}
@@ -179,11 +199,23 @@ function DashboardHome({
             title="Materials &amp; Envelope"
             description={
               materialsConfigured
-                ? `Wall: ${wallLayersCount} layers · Roof: ${roofLayersCount} layers`
+                ? `Wall: ${wallLayersCount} · Roof: ${roofLayersCount} layers`
                 : "Select materials and build wall/roof assemblies."
             }
             configured={materialsConfigured}
             onClick={() => onNavigate("Materials Library")}
+          />
+          <WorkflowCard
+            number="04"
+            icon={<AppWindow aria-hidden />}
+            title="Windows &amp; Glazing"
+            description={
+              windowsConfigured
+                ? `${windowArea !== undefined ? windowArea.toFixed(1) : "0.0"} m² window area`
+                : "Define glazed aperture area and glazing type."
+            }
+            configured={windowsConfigured}
+            onClick={() => onNavigate("Windows & Glazing")}
           />
         </div>
       </section>
@@ -208,16 +240,28 @@ function DashboardHome({
             <ClipboardList aria-hidden />
           </div>
           <div className="empty-project">
-            {climateConfigured && geometryConfigured && materialsConfigured ? (
+            {climateConfigured && geometryConfigured && materialsConfigured && windowsConfigured ? (
               <>
                 <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
-                <h3>Envelope Ready for Simulation</h3>
+                <h3>Glazed Envelope Ready for Simulation</h3>
                 <p>
                   {locationName ? `${locationName} · ` : ""}
-                  {geometrySummary} · {wallLayersCount} wall / {roofLayersCount} roof layers
+                  {geometrySummary} · {windowArea !== undefined ? windowArea.toFixed(1) : "0.0"} m² glazing
                 </p>
-                <button className="primary-button" onClick={() => onNavigate("Materials Library")}>
-                  Review envelope assembly
+                <button className="primary-button" onClick={() => onNavigate("Windows & Glazing")}>
+                  Review window configuration
+                </button>
+              </>
+            ) : climateConfigured && geometryConfigured && materialsConfigured ? (
+              <>
+                <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
+                <h3>Envelope Materials Ready</h3>
+                <p>
+                  {locationName ? `${locationName} · ` : ""}
+                  {geometrySummary}. Next, configure windows and glazing aperture.
+                </p>
+                <button className="primary-button" onClick={() => onNavigate("Windows & Glazing")}>
+                  Configure windows &amp; glazing
                 </button>
               </>
             ) : climateConfigured && geometryConfigured ? (
@@ -299,5 +343,6 @@ function WorkflowCard({
     </button>
   );
 }
+
 
 

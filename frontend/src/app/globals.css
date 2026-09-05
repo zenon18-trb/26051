@@ -162,6 +162,17 @@ button { font: inherit; }
 .notes-item strong { display: block; font-size: 11px; color: var(--navy); }
 .notes-item p { margin: 2px 0 0; font-size: 11px; color: #627b8a; line-height: 1.45; }
 
+/* Stage 4 Windows & Glazing */
+.glazing-kind-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.glazing-kind-card { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border: 1px solid #dce5eb; border-radius: 6px; background: #fff; text-align: left; cursor: pointer; transition: all .15s; }
+.glazing-kind-card:hover { border-color: #85b0c7; background: #f8fbfe; }
+.glazing-kind-card-active { border-color: #2374a8; background: #edf6fa; box-shadow: 0 0 0 1px #2374a8; }
+.glazing-kind-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.glazing-kind-header strong { font-size: 12px; color: var(--navy); }
+.glazing-badge { font-size: 9px; font-weight: 800; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; background: #e2eef5; color: #1b5e85; letter-spacing: .05em; }
+.glazing-kind-card-active .glazing-badge { background: #1b5e85; color: #fff; }
+.glazing-kind-card p { margin: 0; font-size: 11px; color: #68808f; line-height: 1.4; }
+
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (max-width: 850px) { .sidebar { width: 76px; flex-basis: 76px; }.sidebar-brand { padding: 20px 19px; }.sidebar-section-label { font-size: 0; height: 28px; }.nav-item span, .collapse-button span, .brand-title, .brand-subtitle { display: none; }.content-area { padding: 32px 24px 48px; }.topbar { padding: 0 24px; }.user-name { display: none; }.workflow-grid { grid-template-columns: 1fr; }.workflow-card { min-height: 150px; }.lower-grid { grid-template-columns: 1fr; }.climate-layout { grid-template-columns: 1fr; }.geometry-inputs-grid { grid-template-columns: 1fr; }.materials-catalog-layout { grid-template-columns: 1fr; } }
 @media (max-width: 560px) { .sidebar { display: none; }.mobile-menu { display: block; }.topbar-right { gap: 10px; }.env-badge { display: none; }.content-area { padding: 28px 18px 40px; }.page-heading { flex-direction: column; gap: 14px; }.footer { padding: 16px 18px; flex-direction: column; gap: 6px; }.geometry-presets-grid { grid-template-columns: 1fr; }.assembly-target-switch { grid-template-columns: 1fr; }.material-quick-actions { flex-direction: column; } }
