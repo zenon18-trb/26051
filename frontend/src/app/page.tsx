@@ -7,6 +7,8 @@ import { MaterialsLibrary } from "@/components/MaterialsLibrary";
 import { WindowsGlazing } from "@/components/WindowsGlazing";
 import { VentilationOccupants } from "@/components/VentilationOccupants";
 import { HvacThermalControl } from "@/components/HvacThermalControl";
+import { ThermalSimulation } from "@/components/ThermalSimulation";
+import { SimulationResults } from "@/components/SimulationResults";
 import { useShelterConfiguration } from "@/context/ShelterConfigurationContext";
 import {
   Activity,
@@ -106,12 +108,20 @@ export default function Home() {
           {activeItem === "Windows & Glazing" && <WindowsGlazing />}
           {activeItem === "Ventilation & Occupants" && <VentilationOccupants />}
           {activeItem === "HVAC & Thermal Control" && <HvacThermalControl />}
+          {activeItem === "Analysis" && (
+            <ThermalSimulation onNavigateToResults={() => setActiveItem("Reports")} />
+          )}
+          {activeItem === "Reports" && (
+            <SimulationResults onNavigateToSimulation={() => setActiveItem("Analysis")} />
+          )}
           {activeItem !== "Location Climate" &&
             activeItem !== "Shelter Configuration" &&
             activeItem !== "Materials Library" &&
             activeItem !== "Windows & Glazing" &&
             activeItem !== "Ventilation & Occupants" &&
-            activeItem !== "HVAC & Thermal Control" && (
+            activeItem !== "HVAC & Thermal Control" &&
+            activeItem !== "Analysis" &&
+            activeItem !== "Reports" && (
               <DashboardHome
                 climateConfigured={Boolean(climate)}
                 geometryConfigured={Boolean(geometry)}
@@ -317,8 +327,8 @@ function DashboardHome({
                   {ventsOpen ? "5.0 ACH Open" : "0.5 ACH Closed"} · {occupantsCount ?? 0} occupants ·{" "}
                   {hvacMode === "setpoint" ? `Setpoint ${hvacSetpoint?.toFixed(1)} °C` : "Floating Drift (0 W HVAC)"}
                 </p>
-                <button className="primary-button" onClick={() => onNavigate("HVAC & Thermal Control")}>
-                  Review HVAC configuration
+                <button className="primary-button" onClick={() => onNavigate("Analysis")}>
+                  Launch Thermal Simulation
                 </button>
               </>
             ) : climateConfigured && geometryConfigured && materialsConfigured && windowsConfigured && stage5Configured ? (

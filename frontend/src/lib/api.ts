@@ -319,5 +319,208 @@ export type HvacConfig = {
   comfort_band: ComfortBand;
 };
 
+export type LocationConfig = {
+  lat: number;
+  lon: number;
+  preset_id?: string | null;
+};
+
+export type MaterialLayerConfig = {
+  material_id: string;
+  thickness_m: number;
+};
+
+export type ShelterConfig = {
+  length_m: number;
+  width_m: number;
+  height_m: number;
+  wall_layers: MaterialLayerConfig[];
+  roof_layers: MaterialLayerConfig[];
+  windows: WindowConfig;
+  vents: VentConfig;
+  occupants: number;
+  setpoint_c?: number | null;
+};
+
+export type SimulationRequest = {
+  location: LocationConfig;
+  shelter: ShelterConfig;
+  comfort_band: ComfortBand;
+  t_in_initial_c?: number | null;
+};
+
+export type SteadyStateBreakdown = {
+  representative_hour: string;
+  t_out_c: number;
+  t_in_c: number;
+  q_cond_walls_w: number;
+  q_cond_roof_w: number;
+  q_cond_windows_w: number;
+  q_solar_w: number;
+  q_vent_w: number;
+  q_occ_w: number;
+  q_hvac_w: number;
+  q_other_w: number;
+  q_net_w: number;
+};
+
+export type HourlySimulationPoint = {
+  timestamp: string;
+  t_out_c: number;
+  t_in_c: number;
+  q_cond_walls_w: number;
+  q_cond_roof_w: number;
+  q_cond_windows_w: number;
+  q_solar_w: number;
+  q_vent_w: number;
+  q_occ_w: number;
+  q_hvac_w: number;
+  q_other_w: number;
+  q_net_w: number;
+};
+
+export type ComfortSummary = {
+  comfort_pct: number;
+  hours_in_band: number;
+  total_hours: number;
+  peak_deviation_above_k: number;
+  peak_deviation_below_k: number;
+  t_low_c: number;
+  t_high_c: number;
+};
+
+export type HVACSummary = {
+  peak_heating_w: number;
+  peak_cooling_w: number;
+};
+
+export type SimulationResponse = {
+  climate_source: string;
+  climate_source_label: string;
+  capacitance_j_per_k: number;
+  capacitance_clamped: boolean;
+  mode: string;
+  steady_state: SteadyStateBreakdown;
+  hourly: HourlySimulationPoint[];
+  comfort: ComfortSummary;
+  hvac_summary: HVACSummary;
+  units: Record<string, string>;
+  assumptions: string[];
+};
+
+export function serializeSimulationRequest(params: {
+  location: { lat: number; lon: number; preset: LocationPreset | null } | null;
+  geometry: ShelterGeometry | null;
+  wallLayers: MaterialLayer[];
+  roofLayers: MaterialLayer[];
+  windows: WindowConfig | null;
+  vents: VentConfig | null;
+  occupants: number | null;
+  hvac: HvacConfig | null;
+}): SimulationRequest {
+  if (!params.location) {
+    throw new Error("Location configuration is missing.");
+  }
+  if (!params.geometry) {
+    throw new Error("Shelter geometry configuration is missing.");
+  }
+  if (!params.wallLayers || params.wallLayers.length === 0) {
+    throw new Error("Wall assembly layers are missing.");
+  }
+  if (!params.roofLayers || params.roofLayers.length === 0) {
+    throw new Error("Roof assembly layers are missing.");
+  }
+  if (!params.windows) {
+    throw new Error("Window glazing configuration is missing.");
+  }
+  if (!params.vents) {
+    throw new Error("Ventilation state is missing.");
+  }
+  if (params.occupants === null || params.occupants === undefined) {
+    throw new Error("Occupant count is missing.");
+  }
+
+  const locationConfig: LocationConfig = {
+    lat: params.location.lat,
+    lon: params.location.lon,
+    preset_id: params.location.preset?.id ?? null,
+  };
+
+  const shelterConfig: ShelterConfig = {
+    length_m: params.geometry.length_m,
+    width_m: params.geometry.width_m,
+    height_m: params.geometry.height_m,
+    wall_layers: params.wallLayers.map((layer) => ({
+      material_id: layer.material_id,
+      thickness_m: layer.thickness_m,
+    })),
+    roof_layers: params.roofLayers.map((layer) => ({
+      material_id: layer.material_id,
+      thickness_m: layer.thickness_m,
+    })),
+    windows: {
+      area_m2: params.windows.area_m2,
+      kind: params.windows.kind,
+    },
+    vents: {
+      open: params.vents.open,
+    },
+    occupants: Math.round(params.occupants),
+    setpoint_c:
+      params.hvac?.mode === "setpoint" && params.hvac.setpoint_c !== null
+        ? params.hvac.setpoint_c
+        : null,
+  };
+
+  const comfortBand: ComfortBand =
+    params.hvac?.comfort_band ?? DEFAULT_COMFORT_BAND;
+
+  const t_in_initial_c =
+    params.hvac?.mode === "floating" && params.hvac.t_in_initial_c !== null
+      ? params.hvac.t_in_initial_c
+      : null;
+
+  return {
+    location: locationConfig,
+    shelter: shelterConfig,
+    comfort_band: comfortBand,
+    t_in_initial_c,
+  };
+}
+
+export async function simulateShelter(
+  request: SimulationRequest
+): Promise<SimulationResponse> {
+  const url = `${getApiBaseUrl()}/api/simulate`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(request),
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    let errorMessage = `Simulation request failed with HTTP ${response.status}.`;
+    try {
+      const errPayload = await response.json();
+      if (errPayload.error?.message) {
+        errorMessage = errPayload.error.message;
+      } else if (errPayload.detail) {
+        errorMessage =
+          typeof errPayload.detail === "string"
+            ? errPayload.detail
+            : JSON.stringify(errPayload.detail);
+      }
+    } catch {
+      // Fall back to default error message
+    }
+    throw new Error(errorMessage);
+  }
+
+  return response.json() as Promise<SimulationResponse>;
+}
+
 
 

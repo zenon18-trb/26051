@@ -8,6 +8,7 @@ import type {
   LocationPreset,
   MaterialLayer,
   ShelterGeometry,
+  SimulationResponse,
   VentConfig,
   WindowConfig,
 } from "@/lib/api";
@@ -28,6 +29,7 @@ type ShelterConfigurationValue = {
   vents: VentConfig | null;
   occupants: number | null;
   hvac: HvacConfig | null;
+  simulationResult: SimulationResponse | null;
   setLocationClimate: (location: SelectedLocation, climate: ClimateResponse) => void;
   setGeometry: (geometry: ShelterGeometry | null) => void;
   setWallLayers: (layers: MaterialLayer[]) => void;
@@ -36,12 +38,14 @@ type ShelterConfigurationValue = {
   setVents: (vents: VentConfig | null) => void;
   setOccupants: (occupants: number | null) => void;
   setHvac: (hvac: HvacConfig | null) => void;
+  setSimulationResult: (result: SimulationResponse | null) => void;
   isMaterialsConfigured: boolean;
   isWindowsConfigured: boolean;
   isVentilationConfigured: boolean;
   isOccupantsConfigured: boolean;
   isVentilationAndOccupantsConfigured: boolean;
   isHvacConfigured: boolean;
+  isReadyForSimulation: boolean;
 };
 
 const ShelterConfigurationContext = createContext<ShelterConfigurationValue | null>(null);
@@ -56,6 +60,7 @@ export function ShelterConfigurationProvider({ children }: { children: ReactNode
   const [vents, setVents] = useState<VentConfig | null>(null);
   const [occupants, setOccupants] = useState<number | null>(null);
   const [hvac, setHvac] = useState<HvacConfig | null>(null);
+  const [simulationResult, setSimulationResult] = useState<SimulationResponse | null>(null);
 
   const isMaterialsConfigured = useMemo(() => {
     return (
@@ -91,6 +96,26 @@ export function ShelterConfigurationProvider({ children }: { children: ReactNode
     return false;
   }, [hvac]);
 
+  const isReadyForSimulation = useMemo(() => {
+    return (
+      Boolean(location) &&
+      Boolean(climate) &&
+      Boolean(geometry) &&
+      isMaterialsConfigured &&
+      isWindowsConfigured &&
+      isVentilationAndOccupantsConfigured &&
+      isHvacConfigured
+    );
+  }, [
+    location,
+    climate,
+    geometry,
+    isMaterialsConfigured,
+    isWindowsConfigured,
+    isVentilationAndOccupantsConfigured,
+    isHvacConfigured,
+  ]);
+
   const value = useMemo(
     () => ({
       location,
@@ -102,12 +127,14 @@ export function ShelterConfigurationProvider({ children }: { children: ReactNode
       vents,
       occupants,
       hvac,
+      simulationResult,
       isMaterialsConfigured,
       isWindowsConfigured,
       isVentilationConfigured,
       isOccupantsConfigured,
       isVentilationAndOccupantsConfigured,
       isHvacConfigured,
+      isReadyForSimulation,
       setLocationClimate: (nextLocation: SelectedLocation, nextClimate: ClimateResponse) => {
         setLocation(nextLocation);
         setClimate(nextClimate);
@@ -133,6 +160,9 @@ export function ShelterConfigurationProvider({ children }: { children: ReactNode
       setHvac: (nextHvac: HvacConfig | null) => {
         setHvac(nextHvac);
       },
+      setSimulationResult: (result: SimulationResponse | null) => {
+        setSimulationResult(result);
+      },
     }),
     [
       location,
@@ -144,12 +174,14 @@ export function ShelterConfigurationProvider({ children }: { children: ReactNode
       vents,
       occupants,
       hvac,
+      simulationResult,
       isMaterialsConfigured,
       isWindowsConfigured,
       isVentilationConfigured,
       isOccupantsConfigured,
       isVentilationAndOccupantsConfigured,
       isHvacConfigured,
+      isReadyForSimulation,
     ]
   );
 
