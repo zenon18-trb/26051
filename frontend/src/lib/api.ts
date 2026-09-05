@@ -255,5 +255,50 @@ export function calculateWindowMetrics(
   };
 }
 
+export type VentConfig = {
+  open: boolean;
+};
+
+export type VentilationMetrics = {
+  open: boolean;
+  ach: number;
+  volume_m3: number | null;
+  airflow_m3_h: number | null;
+  airflow_m3_s: number | null;
+  mass_flow_kg_s: number | null;
+};
+
+export function calculateVentilationMetrics(
+  open: boolean,
+  volume_m3: number | null
+): VentilationMetrics {
+  const ach = open ? 5.0 : 0.5;
+  const airflow_m3_h = volume_m3 !== null ? ach * volume_m3 : null;
+  const airflow_m3_s = airflow_m3_h !== null ? airflow_m3_h / 3600 : null;
+  const mass_flow_kg_s = airflow_m3_s !== null ? 1.2 * airflow_m3_s : null;
+
+  return {
+    open,
+    ach,
+    volume_m3,
+    airflow_m3_h,
+    airflow_m3_s,
+    mass_flow_kg_s,
+  };
+}
+
+export type OccupantsMetrics = {
+  count: number;
+  sensible_heat_w: number;
+};
+
+export function calculateOccupantMetrics(count: number): OccupantsMetrics {
+  const validCount = Number.isInteger(count) && count >= 0 ? count : 0;
+  return {
+    count: validCount,
+    sensible_heat_w: validCount * 70.0,
+  };
+}
+
 
 

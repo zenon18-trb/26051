@@ -1,7 +1,14 @@
 "use client";
 
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
-import type { ClimateResponse, LocationPreset, MaterialLayer, ShelterGeometry, WindowConfig } from "@/lib/api";
+import type {
+  ClimateResponse,
+  LocationPreset,
+  MaterialLayer,
+  ShelterGeometry,
+  VentConfig,
+  WindowConfig,
+} from "@/lib/api";
 
 export type SelectedLocation = {
   preset: LocationPreset | null;
@@ -16,13 +23,20 @@ type ShelterConfigurationValue = {
   wallLayers: MaterialLayer[];
   roofLayers: MaterialLayer[];
   windows: WindowConfig | null;
+  vents: VentConfig | null;
+  occupants: number | null;
   setLocationClimate: (location: SelectedLocation, climate: ClimateResponse) => void;
   setGeometry: (geometry: ShelterGeometry | null) => void;
   setWallLayers: (layers: MaterialLayer[]) => void;
   setRoofLayers: (layers: MaterialLayer[]) => void;
   setWindows: (config: WindowConfig | null) => void;
+  setVents: (vents: VentConfig | null) => void;
+  setOccupants: (occupants: number | null) => void;
   isMaterialsConfigured: boolean;
   isWindowsConfigured: boolean;
+  isVentilationConfigured: boolean;
+  isOccupantsConfigured: boolean;
+  isVentilationAndOccupantsConfigured: boolean;
 };
 
 const ShelterConfigurationContext = createContext<ShelterConfigurationValue | null>(null);
@@ -34,6 +48,8 @@ export function ShelterConfigurationProvider({ children }: { children: ReactNode
   const [wallLayers, setWallLayers] = useState<MaterialLayer[]>([]);
   const [roofLayers, setRoofLayers] = useState<MaterialLayer[]>([]);
   const [windows, setWindows] = useState<WindowConfig | null>(null);
+  const [vents, setVents] = useState<VentConfig | null>(null);
+  const [occupants, setOccupants] = useState<number | null>(null);
 
   const isMaterialsConfigured = useMemo(() => {
     return (
@@ -48,6 +64,18 @@ export function ShelterConfigurationProvider({ children }: { children: ReactNode
     return windows !== null && windows.area_m2 >= 0 && Boolean(windows.kind);
   }, [windows]);
 
+  const isVentilationConfigured = useMemo(() => {
+    return vents !== null && typeof vents.open === "boolean";
+  }, [vents]);
+
+  const isOccupantsConfigured = useMemo(() => {
+    return occupants !== null && Number.isInteger(occupants) && occupants >= 0;
+  }, [occupants]);
+
+  const isVentilationAndOccupantsConfigured = useMemo(() => {
+    return isVentilationConfigured && isOccupantsConfigured;
+  }, [isVentilationConfigured, isOccupantsConfigured]);
+
   const value = useMemo(
     () => ({
       location,
@@ -56,8 +84,13 @@ export function ShelterConfigurationProvider({ children }: { children: ReactNode
       wallLayers,
       roofLayers,
       windows,
+      vents,
+      occupants,
       isMaterialsConfigured,
       isWindowsConfigured,
+      isVentilationConfigured,
+      isOccupantsConfigured,
+      isVentilationAndOccupantsConfigured,
       setLocationClimate: (nextLocation: SelectedLocation, nextClimate: ClimateResponse) => {
         setLocation(nextLocation);
         setClimate(nextClimate);
@@ -74,8 +107,28 @@ export function ShelterConfigurationProvider({ children }: { children: ReactNode
       setWindows: (nextWindows: WindowConfig | null) => {
         setWindows(nextWindows);
       },
+      setVents: (nextVents: VentConfig | null) => {
+        setVents(nextVents);
+      },
+      setOccupants: (nextOccupants: number | null) => {
+        setOccupants(nextOccupants);
+      },
     }),
-    [location, climate, geometry, wallLayers, roofLayers, windows, isMaterialsConfigured, isWindowsConfigured]
+    [
+      location,
+      climate,
+      geometry,
+      wallLayers,
+      roofLayers,
+      windows,
+      vents,
+      occupants,
+      isMaterialsConfigured,
+      isWindowsConfigured,
+      isVentilationConfigured,
+      isOccupantsConfigured,
+      isVentilationAndOccupantsConfigured,
+    ]
   );
 
   return <ShelterConfigurationContext.Provider value={value}>{children}</ShelterConfigurationContext.Provider>;

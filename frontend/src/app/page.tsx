@@ -5,6 +5,7 @@ import { LocationClimate } from "@/components/LocationClimate";
 import { ShelterConfiguration } from "@/components/ShelterConfiguration";
 import { MaterialsLibrary } from "@/components/MaterialsLibrary";
 import { WindowsGlazing } from "@/components/WindowsGlazing";
+import { VentilationOccupants } from "@/components/VentilationOccupants";
 import { useShelterConfiguration } from "@/context/ShelterConfigurationContext";
 import {
   Activity,
@@ -25,6 +26,7 @@ import {
   Thermometer,
   CheckCircle2,
   Layers,
+  Wind,
 } from "lucide-react";
 
 import { SystemStatus } from "@/components/SystemStatus";
@@ -35,6 +37,7 @@ const navigation = [
   { label: "Shelter Configuration", icon: Box },
   { label: "Materials Library", icon: FlaskConical },
   { label: "Windows & Glazing", icon: AppWindow },
+  { label: "Ventilation & Occupants", icon: Wind },
   { label: "Analysis", icon: Activity },
   { label: "Reports", icon: ClipboardList },
 ];
@@ -49,8 +52,13 @@ export default function Home() {
     wallLayers,
     roofLayers,
     windows,
+    vents,
+    occupants,
     isMaterialsConfigured,
     isWindowsConfigured,
+    isVentilationConfigured,
+    isOccupantsConfigured,
+    isVentilationAndOccupantsConfigured,
   } = useShelterConfiguration();
 
   return (
@@ -91,15 +99,22 @@ export default function Home() {
           {activeItem === "Shelter Configuration" && <ShelterConfiguration />}
           {activeItem === "Materials Library" && <MaterialsLibrary />}
           {activeItem === "Windows & Glazing" && <WindowsGlazing />}
+          {activeItem === "Ventilation & Occupants" && <VentilationOccupants />}
           {activeItem !== "Location Climate" &&
             activeItem !== "Shelter Configuration" &&
             activeItem !== "Materials Library" &&
-            activeItem !== "Windows & Glazing" && (
+            activeItem !== "Windows & Glazing" &&
+            activeItem !== "Ventilation & Occupants" && (
               <DashboardHome
                 climateConfigured={Boolean(climate)}
                 geometryConfigured={Boolean(geometry)}
                 materialsConfigured={isMaterialsConfigured}
                 windowsConfigured={isWindowsConfigured}
+                ventilationConfigured={isVentilationConfigured}
+                occupantsConfigured={isOccupantsConfigured}
+                stage5Configured={isVentilationAndOccupantsConfigured}
+                ventsOpen={vents?.open}
+                occupantsCount={occupants}
                 windowArea={windows?.area_m2}
                 locationName={location?.preset?.name}
                 wallLayersCount={wallLayers.length}
@@ -124,6 +139,9 @@ function DashboardHome({
   geometryConfigured,
   materialsConfigured,
   windowsConfigured,
+  stage5Configured,
+  ventsOpen,
+  occupantsCount,
   windowArea,
   locationName,
   wallLayersCount,
@@ -135,6 +153,11 @@ function DashboardHome({
   geometryConfigured: boolean;
   materialsConfigured: boolean;
   windowsConfigured: boolean;
+  ventilationConfigured?: boolean;
+  occupantsConfigured?: boolean;
+  stage5Configured: boolean;
+  ventsOpen?: boolean;
+  occupantsCount?: number | null;
   windowArea?: number;
   locationName?: string;
   wallLayersCount: number;
@@ -146,7 +169,8 @@ function DashboardHome({
     (climateConfigured ? 1 : 0) +
     (geometryConfigured ? 1 : 0) +
     (materialsConfigured ? 1 : 0) +
-    (windowsConfigured ? 1 : 0);
+    (windowsConfigured ? 1 : 0) +
+    (stage5Configured ? 1 : 0);
 
   return (
     <>
@@ -174,9 +198,9 @@ function DashboardHome({
             <h2>Design workflow</h2>
             <p>Complete each step to prepare your thermal analysis.</p>
           </div>
-          <span className="progress-copy">{completedCount} of 4 complete</span>
+          <span className="progress-copy">{completedCount} of 5 complete</span>
         </div>
-        <div className="workflow-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
+        <div className="workflow-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
           <WorkflowCard
             number="01"
             icon={<CloudSun aria-hidden />}
@@ -217,6 +241,18 @@ function DashboardHome({
             configured={windowsConfigured}
             onClick={() => onNavigate("Windows & Glazing")}
           />
+          <WorkflowCard
+            number="05"
+            icon={<Wind aria-hidden />}
+            title="Ventilation &amp; Occupants"
+            description={
+              stage5Configured
+                ? `${ventsOpen ? "Open (5.0 ACH)" : "Closed (0.5 ACH)"} · ${occupantsCount ?? 0} pers`
+                : "Configure natural air exchange and internal occupant load."
+            }
+            configured={stage5Configured}
+            onClick={() => onNavigate("Ventilation & Occupants")}
+          />
         </div>
       </section>
 
@@ -240,16 +276,29 @@ function DashboardHome({
             <ClipboardList aria-hidden />
           </div>
           <div className="empty-project">
-            {climateConfigured && geometryConfigured && materialsConfigured && windowsConfigured ? (
+            {climateConfigured && geometryConfigured && materialsConfigured && windowsConfigured && stage5Configured ? (
               <>
                 <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
-                <h3>Glazed Envelope Ready for Simulation</h3>
+                <h3>Complete Shelter Model Ready for Simulation</h3>
                 <p>
                   {locationName ? `${locationName} · ` : ""}
-                  {geometrySummary} · {windowArea !== undefined ? windowArea.toFixed(1) : "0.0"} m² glazing
+                  {geometrySummary} · {windowArea !== undefined ? windowArea.toFixed(1) : "0.0"} m² glazing ·{" "}
+                  {ventsOpen ? "5.0 ACH Open" : "0.5 ACH Closed"} · {occupantsCount ?? 0} occupants
                 </p>
-                <button className="primary-button" onClick={() => onNavigate("Windows & Glazing")}>
-                  Review window configuration
+                <button className="primary-button" onClick={() => onNavigate("Ventilation & Occupants")}>
+                  Review ventilation &amp; occupancy
+                </button>
+              </>
+            ) : climateConfigured && geometryConfigured && materialsConfigured && windowsConfigured ? (
+              <>
+                <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
+                <h3>Glazed Envelope Configured</h3>
+                <p>
+                  {locationName ? `${locationName} · ` : ""}
+                  {geometrySummary}. Next, configure ventilation state and occupant internal heat load.
+                </p>
+                <button className="primary-button" onClick={() => onNavigate("Ventilation & Occupants")}>
+                  Configure ventilation &amp; occupants
                 </button>
               </>
             ) : climateConfigured && geometryConfigured && materialsConfigured ? (
@@ -343,6 +392,7 @@ function WorkflowCard({
     </button>
   );
 }
+
 
 
 
