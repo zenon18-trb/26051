@@ -8,19 +8,25 @@ import {
   DEFAULT_OPTIMIZATION_WEIGHTS,
 } from "./thermalOptimizer";
 import type { ShelterFullConfiguration } from "./thermalFixes";
-import type { SimulationResponse, LocationPreset, HourlyResult, SteadyStateResult } from "./api";
+import type {
+  SimulationResponse,
+  LocationPreset,
+  HourlySimulationPoint,
+  SteadyStateBreakdown,
+} from "./api";
 
 const mockPreset: LocationPreset = {
   id: "leh",
   name: "Leh",
+  region: "Ladakh",
+  latitude: 34.1526,
+  longitude: 77.5771,
   lat: 34.1526,
   lon: 77.5771,
-  elevation_m: 3500,
-  state: "Ladakh",
+  environment_type: "Cold High-Altitude",
   climate_type: "Cold",
-  t_out_design_heating_c: -20,
-  t_out_design_cooling_c: 25,
-  solar_peak_w_m2: 900,
+  description: "High altitude cold desert",
+  fixture_id: "leh",
 };
 
 function createMockConfig(overrides: Partial<ShelterFullConfiguration> = {}): ShelterFullConfiguration {
@@ -42,40 +48,49 @@ function createMockConfig(overrides: Partial<ShelterFullConfiguration> = {}): Sh
   };
 }
 
-const mockSteadyState: SteadyStateResult = {
-  u_eff_w_per_k: 100,
-  q_conductance_w_per_k: 80,
-  q_ventilation_w_per_k: 20,
-  q_internal_w: 300,
-  q_solar_w: 100,
+const mockSteadyState: SteadyStateBreakdown = {
+  representative_hour: "2026-09-01T12:00:00",
+  t_out_c: 20.0,
+  t_in_c: 22.0,
+  q_cond_walls_w: 100.0,
+  q_cond_roof_w: 80.0,
+  q_cond_windows_w: 30.0,
+  q_solar_w: 120.0,
+  q_vent_w: 20.0,
+  q_occ_w: 280.0,
+  q_hvac_w: 0.0,
+  q_other_w: 630.0,
+  q_net_w: 630.0,
 };
 
-const mockHourly: HourlyResult[] = [
+const mockHourly: HourlySimulationPoint[] = [
   {
-    hour: 12,
-    timestamp: "12:00",
-    t_out_c: 25,
-    t_in_c: 24,
-    q_heating_w: 0,
-    q_cooling_w: 0,
-    q_solar_w: 50,
-    q_vent_w: 0,
-    q_cond_w: 0,
-    q_int_w: 0,
-    in_comfort_band: true,
+    timestamp: "2026-09-01T12:00:00",
+    t_out_c: 25.0,
+    t_in_c: 24.0,
+    q_cond_walls_w: 20.0,
+    q_cond_roof_w: 20.0,
+    q_cond_windows_w: 10.0,
+    q_solar_w: 50.0,
+    q_vent_w: 0.0,
+    q_occ_w: 280.0,
+    q_hvac_w: 0.0,
+    q_other_w: 380.0,
+    q_net_w: 380.0,
   },
   {
-    hour: 4,
-    timestamp: "04:00",
-    t_out_c: -10,
-    t_in_c: 14,
-    q_heating_w: 0,
-    q_cooling_w: 0,
-    q_solar_w: 0,
-    q_vent_w: 0,
-    q_cond_w: 0,
-    q_int_w: 0,
-    in_comfort_band: false,
+    timestamp: "2026-09-01T04:00:00",
+    t_out_c: -10.0,
+    t_in_c: 14.0,
+    q_cond_walls_w: -80.0,
+    q_cond_roof_w: -60.0,
+    q_cond_windows_w: -30.0,
+    q_solar_w: 0.0,
+    q_vent_w: -20.0,
+    q_occ_w: 280.0,
+    q_hvac_w: 0.0,
+    q_other_w: 90.0,
+    q_net_w: 90.0,
   },
 ];
 

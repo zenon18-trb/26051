@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test --experimental-strip-types src/lib/*.test.ts"
+    "test": "npx tsx --test src/lib/*.test.ts"
   },
   "dependencies": {
     "lucide-react": "^1.37.0",
@@ -23,6 +23,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.3",
     "tailwindcss": "^4",
+    "tsx": "^4.19.3",
     "typescript": "^5"
   }
 }
