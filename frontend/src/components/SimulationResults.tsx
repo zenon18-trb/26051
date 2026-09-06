@@ -7,6 +7,8 @@ import {
   AlertTriangle,
   ArrowLeft,
   ArrowRight,
+  Award,
+  BarChart3,
   Check,
   CheckCircle2,
   Clock,
@@ -19,6 +21,7 @@ import {
   Layers,
   Play,
   RefreshCw,
+  RotateCcw,
   ShieldAlert,
   ShieldCheck,
   Sparkles,
@@ -26,8 +29,10 @@ import {
   Thermometer,
   TrendingDown,
   TrendingUp,
+  Trophy,
   Wind,
   Wrench,
+  Zap,
 } from "lucide-react";
 import { useShelterConfiguration } from "@/context/ShelterConfigurationContext";
 import {
@@ -44,6 +49,12 @@ import {
   ThermalFixEvaluation,
   ShelterFullConfiguration,
 } from "@/lib/thermalFixes.ts";
+import {
+  runThermalOptimization,
+  OptimizationRun,
+  OptimizationResult,
+  DEFAULT_OPTIMIZATION_WEIGHTS,
+} from "@/lib/thermalOptimizer.ts";
 
 export function SimulationResults({
   onNavigateToSimulation,
@@ -75,6 +86,16 @@ export function SimulationResults({
   const [evaluationError, setEvaluationError] = useState<string | null>(null);
   const [appliedFixMsg, setAppliedFixMsg] = useState<string | null>(null);
 
+  // Stage 10 Optimization State
+  const [optimizationRun, setOptimizationRun] = useState<OptimizationRun | null>(null);
+  const [isOptimizing, setIsOptimizing] = useState<boolean>(false);
+  const [optProgress, setOptProgress] = useState<{
+    completed: number;
+    total: number;
+    currentTitle: string;
+  } | null>(null);
+  const [optError, setOptError] = useState<string | null>(null);
+
   const baselineConfig: ShelterFullConfiguration = useMemo(
     () => ({
       location,
@@ -97,7 +118,7 @@ export function SimulationResults({
     return generateFeasibleFixCandidates(baselineConfig, diagnosis);
   }, [baselineConfig, diagnosis]);
 
-  // Handle single candidate evaluation
+  // Handle single candidate evaluation (Stage 9)
   const handleEvaluateFix = useCallback(
     async (candidate: ThermalFixCandidate) => {
       if (!simulationResult) return;
@@ -121,12 +142,11 @@ export function SimulationResults({
     [baselineConfig, simulationResult]
   );
 
-  // Handle applying a fix to the active configuration
+  // Handle single fix application (Stage 9)
   const handleApplyFix = useCallback(
     (candidate: ThermalFixCandidate, evaluation: ThermalFixEvaluation) => {
       const modified = candidate.applyModification(baselineConfig);
 
-      // Apply modifications to context
       if (modified.wallLayers) setWallLayers(modified.wallLayers);
       if (modified.roofLayers) setRoofLayers(modified.roofLayers);
       if (modified.windows) setWindows(modified.windows);
@@ -134,13 +154,60 @@ export function SimulationResults({
       if (modified.occupants !== null && modified.occupants !== undefined) setOccupants(modified.occupants);
       if (modified.hvac) setHvac(modified.hvac);
 
-      // Update active simulation result to evaluated response
       setSimulationResult(evaluation.simulationResponse);
-
       setAppliedFixMsg(`Successfully applied "${candidate.title}" to active shelter configuration.`);
       window.scrollTo({ top: 0, behavior: "smooth" });
     },
     [baselineConfig, setWallLayers, setRoofLayers, setWindows, setVents, setOccupants, setHvac, setSimulationResult]
+  );
+
+  // Handle full multi-candidate optimization run (Stage 10)
+  const handleRunOptimization = useCallback(async () => {
+    if (!simulationResult) return;
+    setIsOptimizing(true);
+    setOptError(null);
+    setOptProgress({ completed: 0, total: 0, currentTitle: "Initializing candidate space..." });
+
+    try {
+      const run = await runThermalOptimization(
+        baselineConfig,
+        simulationResult,
+        DEFAULT_OPTIMIZATION_WEIGHTS,
+        (completed, total, currentTitle) => {
+          setOptProgress({ completed, total, currentTitle });
+        }
+      );
+      setOptimizationRun(run);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Optimization process encountered an error.";
+      setOptError(`Optimization failed: ${msg}`);
+    } finally {
+      setIsOptimizing(false);
+      setOptProgress(null);
+    }
+  }, [baselineConfig, simulationResult]);
+
+  // Handle applying recommended candidate to active workspace (Stage 10)
+  const handleApplyRecommendation = useCallback(
+    (recResult: OptimizationResult) => {
+      const modified = recResult.candidate.applyModification(baselineConfig);
+
+      // Update active workspace configuration
+      if (modified.wallLayers) setWallLayers(modified.wallLayers);
+      if (modified.roofLayers) setRoofLayers(modified.roofLayers);
+      if (modified.windows) setWindows(modified.windows);
+      if (modified.vents) setVents(modified.vents);
+      if (modified.occupants !== null && modified.occupants !== undefined) setOccupants(modified.occupants);
+      if (modified.hvac) setHvac(modified.hvac);
+
+      // Invalidate old simulation results and optimization runs to prevent stale state display
+      setSimulationResult(null);
+      setOptimizationRun(null);
+
+      // Navigate user to simulation tab to run fresh simulation with new design
+      onNavigateToSimulation();
+    },
+    [baselineConfig, setWallLayers, setRoofLayers, setWindows, setVents, setOccupants, setHvac, setSimulationResult, onNavigateToSimulation]
   );
 
   if (!simulationResult || !diagnosis) {
@@ -148,8 +215,8 @@ export function SimulationResults({
       <div className="climate-page">
         <div className="page-heading">
           <div>
-            <p className="eyebrow">STAGE 8 · THERMAL FAILURE DETECTION &amp; DIAGNOSIS</p>
-            <h1>Thermal Health &amp; Design Diagnosis</h1>
+            <p className="eyebrow">STAGE 8, 9 &amp; 10 · THERMAL DIAGNOSIS &amp; OPTIMIZATION</p>
+            <h1>Thermal Health &amp; Design Optimization</h1>
             <p className="page-description">
               Analysis results generated by the server simulation engine.
             </p>
@@ -162,7 +229,7 @@ export function SimulationResults({
           </div>
           <h3>No Simulation Results Available</h3>
           <p style={{ maxWidth: "440px", margin: "0 auto 20px", color: "#68808f", fontSize: "12px" }}>
-            Run the 24-hour transient thermal simulation to evaluate shelter thermal health, detect comfort failures, and view explainable heat-flow diagnosis.
+            Run the 24-hour transient thermal simulation to evaluate shelter thermal health, detect comfort failures, and run explainable design optimization.
           </p>
           <button
             type="button"
@@ -213,15 +280,15 @@ export function SimulationResults({
       {/* Page Heading */}
       <div className="page-heading climate-heading">
         <div>
-          <p className="eyebrow">STAGE 8 &amp; 9 · THERMAL DIAGNOSIS &amp; INTERVENTIONS</p>
-          <h1>Thermal Health &amp; Design Interventions</h1>
+          <p className="eyebrow">STAGE 8, 9 &amp; 10 · DIAGNOSIS, INTERVENTIONS &amp; OPTIMIZATION</p>
+          <h1>Thermal Health &amp; Design Optimization</h1>
           <p className="page-description">
-            Deterministic rule-based failure diagnosis and backend-validated single-parameter design interventions.
+            Deterministic rule-based failure diagnosis, single-fix evaluation, and explainable multi-candidate design optimization.
           </p>
         </div>
         <div className="configured-pill">
           <span className="status-dot status-dot-configured" />
-          Simulation &amp; Diagnosis Active
+          Simulation &amp; Optimizer Active
         </div>
       </div>
 
@@ -233,7 +300,7 @@ export function SimulationResults({
         </div>
       )}
 
-      {/* 1. Primary Diagnosis Hero Banner */}
+      {/* 1. Primary Diagnosis Hero Banner (Stage 8) */}
       <div
         className="diagnosis-hero-banner"
         style={{
@@ -257,7 +324,7 @@ export function SimulationResults({
         </div>
       </div>
 
-      {/* 2. Failure Breakdown KPI Cards */}
+      {/* 2. Failure Breakdown KPI Cards (Stage 8) */}
       <div className="results-kpi-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)", marginTop: "16px" }}>
         {/* KPI 1: Comfort Percentage */}
         <div className="results-kpi-card">
@@ -351,7 +418,7 @@ export function SimulationResults({
         </div>
       </div>
 
-      {/* 3. 24-Hour Diurnal Timeline Chart */}
+      {/* 3. 24-Hour Diurnal Timeline Chart (Stage 8) */}
       <section className="climate-panel" style={{ marginTop: "18px", padding: "20px" }}>
         <div className="panel-heading" style={{ marginBottom: "12px", borderBottom: "none", paddingBottom: 0 }}>
           <div>
@@ -393,14 +460,338 @@ export function SimulationResults({
         </div>
       </section>
 
-      {/* 4. STAGE 9: Potential Design Interventions & Evaluation Section */}
+      {/* 4. STAGE 10: Explainable Thermal Design Optimization Section */}
+      <section className="climate-panel" style={{ marginTop: "18px", padding: "22px" }}>
+        <div className="panel-heading" style={{ paddingBottom: "14px", borderBottom: "1px solid #edf2f5" }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span className="eyebrow" style={{ margin: 0 }}>STAGE 10 · EXPLAINABLE DESIGN OPTIMIZATION</span>
+            </div>
+            <h2 style={{ marginTop: "4px" }}>Explainable Thermal Design Optimizer</h2>
+            <p>
+              Explores bounded single-parameter design candidates (up to 12) via the real backend physics engine and ranks them under transparent engineering weights (60% comfort, 30% HVAC demand, 10% design disruption).
+            </p>
+          </div>
+          <Trophy aria-hidden className="text-amber-500" />
+        </div>
+
+        {/* Optimizer Launcher Card */}
+        <div className="optimizer-launcher-bar" style={{ marginTop: "16px" }}>
+          <div className="launcher-info">
+            <strong>Run Automated Design Optimization</strong>
+            <p>
+              Simulates candidate envelope thicknesses, glazing ratios, ventilation states, and HVAC setpoint modes sequentially against FastAPI.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="primary-button launcher-btn"
+            onClick={handleRunOptimization}
+            disabled={isOptimizing}
+          >
+            {isOptimizing ? (
+              <>
+                <RefreshCw aria-hidden className="spin w-4 h-4" />
+                <span>Optimizing Designs...</span>
+              </>
+            ) : optimizationRun ? (
+              <>
+                <RefreshCw aria-hidden className="w-4 h-4" />
+                <span>Re-Run Thermal Optimizer</span>
+              </>
+            ) : (
+              <>
+                <Sparkles aria-hidden className="w-4 h-4" />
+                <span>Run Thermal Optimization</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Progress Bar when Optimizing */}
+        {isOptimizing && optProgress && (
+          <div className="opt-progress-box" style={{ marginTop: "14px" }}>
+            <div className="opt-progress-header">
+              <span>Evaluating Candidate {optProgress.completed + 1} of {optProgress.total || "..."}</span>
+              <strong>{optProgress.currentTitle}</strong>
+            </div>
+            <div className="opt-progress-track">
+              <div
+                className="opt-progress-fill"
+                style={{
+                  width: `${optProgress.total > 0 ? (optProgress.completed / optProgress.total) * 100 : 15}%`,
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Error Banner */}
+        {optError && (
+          <div className="preflight-error-banner" style={{ marginTop: "14px" }}>
+            <AlertTriangle aria-hidden />
+            <div>
+              <strong>Optimization Run Failed</strong>
+              <p>{optError}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Optimization Run Results View */}
+        {optimizationRun && (
+          <div className="optimization-results-container" style={{ marginTop: "18px" }}>
+            {/* 4A. Prominent Recommended Design Card */}
+            {optimizationRun.recommendedResult ? (
+              <div className="recommended-hero-card">
+                <div className="rec-card-topbar">
+                  <div className="rec-badge-wrap">
+                    <span className="rec-star-badge">
+                      <Award aria-hidden className="w-3.5 h-3.5" />
+                      Recommended Design Intervention
+                    </span>
+                    <span className="rec-score-pill">
+                      Composite Score: <strong>{optimizationRun.recommendedResult.score?.totalScore.toFixed(3)}</strong>
+                    </span>
+                  </div>
+                  <span className="rec-rank-pill">Rank #1 of {optimizationRun.results.length} Candidates</span>
+                </div>
+
+                <div className="rec-main-info">
+                  <h3 className="rec-title">{optimizationRun.recommendedResult.candidate.title}</h3>
+                  <div className="rec-param-delta">
+                    <span>{optimizationRun.recommendedResult.candidate.parameterName}:</span>
+                    <strong>
+                      {optimizationRun.recommendedResult.candidate.baselineValueDisplay} →{" "}
+                      {optimizationRun.recommendedResult.candidate.proposedValueDisplay}
+                    </strong>
+                  </div>
+                </div>
+
+                {/* 4-Metric Simulated Impact Comparison Grid */}
+                <div className="rec-kpi-grid">
+                  <div className="rec-kpi-cell">
+                    <span className="rec-kpi-lbl">Thermal Comfort</span>
+                    <strong className="rec-kpi-val text-emerald-700">
+                      {optimizationRun.baselineMetrics.comfortPct.toFixed(1)}% →{" "}
+                      {optimizationRun.recommendedResult.metrics?.comfortPct.toFixed(1)}%
+                    </strong>
+                    <small className="text-emerald-600 font-bold">
+                      +{optimizationRun.recommendedResult.metrics?.comfortDeltaPercentagePoints.toFixed(1)} percentage points
+                    </small>
+                  </div>
+
+                  <div className="rec-kpi-cell">
+                    <span className="rec-kpi-lbl">Discomfort Duration</span>
+                    <strong className="rec-kpi-val">
+                      {optimizationRun.baselineMetrics.hoursOutside} h →{" "}
+                      {optimizationRun.recommendedResult.metrics?.hoursOutside} h
+                    </strong>
+                    <small className="text-emerald-600 font-bold">
+                      {optimizationRun.recommendedResult.metrics?.hoursOutsideDelta} hours
+                    </small>
+                  </div>
+
+                  <div className="rec-kpi-cell">
+                    <span className="rec-kpi-lbl">Peak HVAC Demand</span>
+                    <strong className="rec-kpi-val">
+                      {optimizationRun.recommendedResult.metrics?.peakTotalHvacW.toFixed(0)} W
+                    </strong>
+                    <small style={{ color: "#68808f" }}>
+                      Baseline: {optimizationRun.baselineMetrics.peakTotalHvacW.toFixed(0)} W
+                    </small>
+                  </div>
+
+                  <div className="rec-kpi-cell">
+                    <span className="rec-kpi-lbl">Temperature Extremes</span>
+                    <strong className="rec-kpi-val">
+                      {optimizationRun.recommendedResult.metrics?.minIndoorTempC.toFixed(1)}°C —{" "}
+                      {optimizationRun.recommendedResult.metrics?.maxIndoorTempC.toFixed(1)}°C
+                    </strong>
+                    <small style={{ color: "#68808f" }}>
+                      Baseline: {optimizationRun.baselineMetrics.minIndoorTempC.toFixed(1)}°C —{" "}
+                      {optimizationRun.baselineMetrics.maxIndoorTempC.toFixed(1)}°C
+                    </small>
+                  </div>
+                </div>
+
+                {/* Explainability Synthesis Card */}
+                <div className="rec-why-box">
+                  <div className="rec-why-header">
+                    <Info aria-hidden className="w-4 h-4 text-blue-600" />
+                    <strong>Why Was This Design Selected?</strong>
+                  </div>
+                  <p className="rec-why-text">{optimizationRun.recommendedResult.explanation}</p>
+                </div>
+
+                {/* Apply Recommended Design Action */}
+                <div className="rec-actions-bar">
+                  <button
+                    type="button"
+                    className="primary-button rec-apply-btn"
+                    onClick={() => handleApplyRecommendation(optimizationRun.recommendedResult!)}
+                  >
+                    <Check aria-hidden className="w-4 h-4" />
+                    <span>Apply Recommended Design to Workspace</span>
+                  </button>
+                  <span className="rec-apply-hint">
+                    Applying updates your active shelter parameters and requests a fresh validation simulation.
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="stable-fixes-card" style={{ marginTop: "14px" }}>
+                <div className="stable-icon-wrap">
+                  <ShieldCheck aria-hidden />
+                </div>
+                <div className="stable-fixes-content">
+                  <strong>No Meaningful Improvement Over Baseline</strong>
+                  <p>
+                    None of the {optimizationRun.totalCandidateCount} evaluated single-parameter interventions produced a meaningful improvement over the current baseline design.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* 4B. Candidate Ranking Table */}
+            <div className="candidate-ranking-card" style={{ marginTop: "18px" }}>
+              <div className="ranking-table-header">
+                <div>
+                  <h4>Evaluated Candidate Ranking</h4>
+                  <p>Comprehensive comparative ranking across all {optimizationRun.totalCandidateCount} simulated interventions.</p>
+                </div>
+                <span className="table-count-pill">{optimizationRun.results.length} Candidates</span>
+              </div>
+
+              <div className="table-scroll-wrap">
+                <table className="ranking-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: "50px" }}>Rank</th>
+                      <th>Design Intervention</th>
+                      <th>Category</th>
+                      <th>Thermal Comfort</th>
+                      <th>Discomfort</th>
+                      <th>Peak HVAC</th>
+                      <th>Score</th>
+                      <th style={{ textAlign: "right" }}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {optimizationRun.results.map((res) => {
+                      const isRec = res.status === "recommended";
+                      const isRej = res.status === "rejected" || res.status === "failed";
+
+                      return (
+                        <tr key={res.candidate.id} className={isRec ? "row-recommended" : isRej ? "row-infeasible" : ""}>
+                          <td>
+                            {isRej ? (
+                              <span className="rank-muted">—</span>
+                            ) : (
+                              <span className={`rank-badge ${isRec ? "rank-gold" : ""}`}>#{res.rank}</span>
+                            )}
+                          </td>
+                          <td>
+                            <strong className="cand-table-title">{res.candidate.title}</strong>
+                            <small className="cand-table-sub">
+                              {res.candidate.baselineValueDisplay} → {res.candidate.proposedValueDisplay}
+                            </small>
+                          </td>
+                          <td>
+                            <span className="category-tag-table">
+                              {res.candidate.category.replace("envelope_", "")}
+                            </span>
+                          </td>
+                          <td>
+                            {res.metrics ? (
+                              <div className="metric-table-col">
+                                <strong>{res.metrics.comfortPct.toFixed(1)}%</strong>
+                                <small
+                                  style={{
+                                    color:
+                                      res.metrics.comfortDeltaPercentagePoints > 0
+                                        ? "#2e7a50"
+                                        : res.metrics.comfortDeltaPercentagePoints < 0
+                                        ? "#c53828"
+                                        : "#68808f",
+                                  }}
+                                >
+                                  {res.metrics.comfortDeltaPercentagePoints > 0 ? "+" : ""}
+                                  {res.metrics.comfortDeltaPercentagePoints.toFixed(1)} pp
+                                </small>
+                              </div>
+                            ) : (
+                              <span className="text-slate-400">—</span>
+                            )}
+                          </td>
+                          <td>
+                            {res.metrics ? (
+                              <div className="metric-table-col">
+                                <span>{res.metrics.hoursOutside} hrs</span>
+                                <small style={{ color: res.metrics.hoursOutsideDelta < 0 ? "#2e7a50" : "#68808f" }}>
+                                  {res.metrics.hoursOutsideDelta > 0 ? "+" : ""}
+                                  {res.metrics.hoursOutsideDelta} hrs
+                                </small>
+                              </div>
+                            ) : (
+                              <span className="text-slate-400">—</span>
+                            )}
+                          </td>
+                          <td>
+                            {res.metrics ? (
+                              <div className="metric-table-col">
+                                <span>{res.metrics.peakTotalHvacW.toFixed(0)} W</span>
+                                <small style={{ color: "#68808f" }}>
+                                  {res.metrics.peakTotalHvacDeltaW > 0 ? "+" : ""}
+                                  {res.metrics.peakTotalHvacDeltaW.toFixed(0)} W
+                                </small>
+                              </div>
+                            ) : (
+                              <span className="text-slate-400">—</span>
+                            )}
+                          </td>
+                          <td>
+                            {res.score ? (
+                              <strong className="score-table-val">{res.score.totalScore.toFixed(3)}</strong>
+                            ) : (
+                              <span className="text-slate-400">—</span>
+                            )}
+                          </td>
+                          <td style={{ textAlign: "right" }}>
+                            {res.status === "recommended" ? (
+                              <span className="status-badge-table badge-table-recommended">✓ Recommended</span>
+                            ) : res.status === "evaluated" ? (
+                              <span className="status-badge-table badge-table-evaluated">Evaluated</span>
+                            ) : (
+                              <span className="status-badge-table badge-table-rejected">Filtered</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Optimizer Technical Boundaries Disclaimer */}
+            <div className="thresholds-note" style={{ marginTop: "14px" }}>
+              <Info aria-hidden className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              <span>
+                <strong>Optimization Boundary Note:</strong> The optimizer evaluates a bounded set of deterministic, single-parameter interventions under 60% comfort, 30% HVAC demand, and 10% design disruption weighting. It identifies the best-performing candidate among evaluated designs and does not guarantee an unconstrained global optimum.
+              </span>
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* 5. STAGE 9: Potential Single Design Interventions Section */}
       <section className="climate-panel" style={{ marginTop: "18px", padding: "22px" }}>
         <div className="panel-heading" style={{ paddingBottom: "14px", borderBottom: "1px solid #edf2f5" }}>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <span className="eyebrow" style={{ margin: 0 }}>STAGE 9 · POTENTIAL DESIGN INTERVENTIONS</span>
             </div>
-            <h2 style={{ marginTop: "4px" }}>Evaluated Thermal Interventions</h2>
+            <h2 style={{ marginTop: "4px" }}>Single-Fix Candidate Evaluator</h2>
             <p>
               Targeted single-parameter modifications evaluated against the authoritative backend simulation engine.
             </p>
@@ -610,8 +1001,8 @@ export function SimulationResults({
                           </>
                         ) : (
                           <>
-                            <Play aria-hidden className="w-3.5 h-3.5" />
-                            <span>Evaluate Fix with Backend Engine</span>
+                            <Sparkles aria-hidden className="w-3.5 h-3.5" />
+                            <span>Evaluate Fix (Run POST /api/simulate)</span>
                           </>
                         )}
                       </button>
@@ -635,7 +1026,7 @@ export function SimulationResults({
         )}
       </section>
 
-      {/* 5. Two-Column Analysis Grid (Stage 8 Breakdown & Assumptions) */}
+      {/* 6. Two-Column Analysis Grid (Stage 8 Breakdown & Assumptions) */}
       <div className="climate-layout" style={{ marginTop: "18px" }}>
         {/* Left Column: Likely Thermal Contributors */}
         <section className="climate-panel selection-panel">

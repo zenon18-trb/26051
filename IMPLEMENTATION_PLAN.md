@@ -466,3 +466,27 @@ Protect Day 3 dashboard above Day 4 comparison polish.
 - **Single-Variable Transparency**: Each candidate modifies exactly *one* design parameter to preserve transparent cause-and-effect understanding.
 - **Immutable Baseline State**: Baseline configuration remains unmutated during candidate evaluation unless the user explicitly applies the fix.
 - **Not an Optimization Engine**: Stage 9 provides single-parameter interventions; full multi-parameter optimization and candidate Pareto ranking are reserved for Stage 10.
+
+---
+
+## Stage 10 — Explainable Thermal Design Optimization
+
+**Status:** COMPLETE
+
+**Design Principles & Boundaries**:
+- **Deterministic Single-Parameter Search Space**: Generates a bounded set of deterministic candidate interventions (maximum 12 candidates) across wall insulation (+25 mm, +50 mm), roof insulation (+25 mm, +50 mm), glazing reduction (-20%, -40%), ventilation toggle (open → closed), and HVAC activation (floating → 22.0°C setpoint).
+- **Strict Feasibility Filtering**: Evaluates each candidate against geometric bounds (dimensions > 0, window area >= 0, window area <= gross wall area), physical material thickness (> 0), valid material IDs, non-negative occupancy, and baseline uniqueness (rejects duplicate candidates).
+- **Real Backend Physics Evaluation**: Every feasible candidate is simulated sequentially via the authoritative FastAPI backend endpoint (`POST /api/simulate`). No client-side thermal approximations or estimations.
+- **Transparent Composite Scoring**:
+  $$\text{Total Score} = 0.60 \times \text{Comfort Score} + 0.30 \times \text{HVAC Score} + 0.10 \times \text{Change Score}$$
+  - $\text{Comfort Score} = \text{comfort\_pct} / 100$
+  - $\text{HVAC Score}$: If baseline HVAC demand $> 0$: $\max(0, 1 - \text{peak\_total\_hvac} / \text{baseline\_peak\_total\_hvac})$. If baseline HVAC $= 0$: pure passive candidate receives $1.0$; active setpoint candidate introducing mechanical load is scored safely against a $3000\,\text{W}$ reference scale without division by zero or NaN/Infinity.
+  - $\text{Change Score} = 1 - \text{normalized\_design\_change\_magnitude}$
+  - *(Note: Objective weights are product design parameters, NOT DRDO statutory standards or physical laws).*
+- **Meaningful Improvement Threshold**: Recommends a design candidate only if it provides a meaningful thermal comfort gain ($\ge 2.0$ percentage points or decrease in discomfort hours) or HVAC demand reduction. If no candidate improves performance, the system explicitly displays *"No evaluated intervention provides a meaningful improvement over the current design"* rather than forcing a recommendation.
+- **Explainable Ranking & Structured Rationale**: Shows an interactive candidate ranking table and an explainable recommendation card with before-and-after metric comparisons and structured justification explaining why the candidate was selected.
+- **State Separation & Safe Application**: Optimization results are stored separately in `optimizationRun` state without mutating the active workspace. When the user explicitly clicks *"Apply Recommended Design to Workspace"*, the active configuration is updated, stale simulation results are cleared, and the user is guided to run a fresh backend simulation.
+- **Optimization Limitations Disclaimer**:
+  > [!NOTE]
+  > The optimizer searches a bounded set of deterministic, single-parameter interventions and recommends the best-performing evaluated candidate. It does not guarantee a global optimum.
+

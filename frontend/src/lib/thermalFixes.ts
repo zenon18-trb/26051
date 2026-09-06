@@ -12,12 +12,10 @@
  */
 
 import type {
-  ComfortBand,
   HvacConfig,
   LocationPreset,
   MaterialLayer,
   ShelterGeometry,
-  SimulationRequest,
   SimulationResponse,
   VentConfig,
   WindowConfig,
@@ -115,7 +113,7 @@ export function generateFeasibleFixCandidates(
   }
 
   const candidates: ThermalFixCandidate[] = [];
-  const { wallLayers, roofLayers, windows, vents, hvac, geometry } = config;
+  const { wallLayers, roofLayers, windows, vents, hvac } = config;
 
   // Candidate 1: Increase Wall Insulation (+25mm)
   if (wallLayers && wallLayers.length > 0) {

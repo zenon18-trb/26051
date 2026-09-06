@@ -295,4 +295,64 @@ button { font: inherit; }
 @media (max-width: 850px) { .sidebar { width: 76px; flex-basis: 76px; }.sidebar-brand { padding: 20px 19px; }.sidebar-section-label { font-size: 0; height: 28px; }.nav-item span, .collapse-button span, .brand-title, .brand-subtitle { display: none; }.content-area { padding: 32px 24px 48px; }.topbar { padding: 0 24px; }.user-name { display: none; }.workflow-grid { grid-template-columns: 1fr; }.workflow-card { min-height: 150px; }.lower-grid { grid-template-columns: 1fr; }.climate-layout { grid-template-columns: 1fr; }.geometry-inputs-grid { grid-template-columns: 1fr; }.materials-catalog-layout { grid-template-columns: 1fr; } }
 @media (max-width: 560px) { .sidebar { display: none; }.mobile-menu { display: block; }.topbar-right { gap: 10px; }.env-badge { display: none; }.content-area { padding: 28px 18px 40px; }.page-heading { flex-direction: column; gap: 14px; }.footer { padding: 16px 18px; flex-direction: column; gap: 6px; }.geometry-presets-grid { grid-template-columns: 1fr; }.assembly-target-switch { grid-template-columns: 1fr; }.material-quick-actions { flex-direction: column; } }
 
+/* Stage 10 Explainable Thermal Optimizer */
+.optimizer-launcher-bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 18px; border-radius: 8px; background: #f0f7fb; border: 1px solid #d0e4f2; flex-wrap: wrap; margin-bottom: 4px; }
+.launcher-info { display: flex; flex-direction: column; gap: 2px; }
+.launcher-info strong { font-size: 13px; color: #184e6f; }
+.launcher-info span { font-size: 11px; color: #49718a; }
+.launcher-btn { margin-top: 0; display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; padding: 9px 18px; }
 
+.opt-progress-box { padding: 14px 18px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; }
+.opt-progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; color: var(--navy); }
+.opt-progress-track { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+.opt-progress-fill { height: 100%; background: #0077b6; transition: width .2s ease; border-radius: 4px; }
+
+.recommended-hero-card { border: 2px solid #38a169; border-radius: 8px; background: #fff; padding: 20px; box-shadow: 0 4px 12px rgba(56, 161, 105, .08); }
+.rec-card-topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid #eef3f0; padding-bottom: 12px; }
+.rec-badge-group { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.rec-star-badge { font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; letter-spacing: .06em; }
+.rec-score-pill { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; background: #f0fdf4; color: #166534; border: 1px solid #dcfce7; }
+.rec-rank-pill { font-size: 11px; color: #64748b; font-weight: 600; }
+.rec-title { margin: 12px 0 2px; font-size: 16px; color: var(--navy); }
+.rec-param-delta { margin: 0; font-size: 12px; color: #4a6778; }
+
+.rec-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 14px; }
+.rec-kpi-cell { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border-radius: 6px; background: #f8fafc; border: 1px solid #e8eff3; }
+.rec-kpi-lbl { font-size: 9px; text-transform: uppercase; font-weight: 700; color: #7f97a5; letter-spacing: .05em; }
+.rec-kpi-val { font-size: 13px; color: var(--navy); }
+.rec-kpi-cell small { font-size: 10px; line-height: 1.2; }
+
+.rec-why-box { margin-top: 16px; padding: 12px 14px; border-radius: 6px; background: #f0f9ff; border: 1px solid #bae6fd; }
+.rec-why-header { font-size: 11px; font-weight: 800; text-transform: uppercase; color: #0369a1; letter-spacing: .05em; margin-bottom: 4px; }
+.rec-why-text { margin: 0; font-size: 12px; color: #0c4a6e; line-height: 1.5; }
+
+.rec-actions-bar { display: flex; align-items: center; gap: 14px; margin-top: 16px; padding-top: 14px; border-top: 1px solid #f0f4f8; flex-wrap: wrap; }
+.rec-apply-btn { margin-top: 0; display: inline-flex; align-items: center; gap: 8px; font-size: 12px; padding: 9px 18px; }
+.rec-apply-hint { font-size: 11px; color: #718096; }
+
+.candidate-ranking-card { border: 1px solid #dfe8ee; border-radius: 8px; background: #fff; padding: 18px; }
+.ranking-table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+.table-scroll-wrap { overflow-x: auto; }
+.ranking-table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
+.ranking-table th { background: #f8fafc; color: #5a7382; font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: .05em; padding: 10px 12px; border-bottom: 1px solid #e2e8f0; }
+.ranking-table td { padding: 10px 12px; border-bottom: 1px solid #edf2f7; vertical-align: middle; }
+.row-recommended { background: #f6fbf8; }
+.row-infeasible { opacity: .6; background: #fafafa; }
+
+.rank-badge { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; font-size: 11px; font-weight: 800; background: #f1f5f9; color: #475569; }
+.rank-gold { background: #fef08a; color: #854d0e; border: 1px solid #fde047; }
+.cand-table-title { font-weight: 700; color: var(--navy); }
+.cand-table-sub { font-size: 10px; color: #78909c; }
+.category-tag-table { font-size: 9px; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; background: #eef4f8; color: #235c7e; }
+.metric-table-col { font-weight: 600; color: #1e293b; }
+.metric-table-col small { display: block; font-size: 10px; font-weight: 500; }
+.score-table-val { font-size: 13px; font-weight: 800; color: #0284c7; }
+
+.status-badge-table { font-size: 9px; font-weight: 800; text-transform: uppercase; padding: 3px 6px; border-radius: 3px; letter-spacing: .05em; }
+.badge-table-recommended { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+.badge-table-evaluated { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+.badge-table-rejected { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+.score-formula-card { border: 1px solid #e2e8f0; border-radius: 6px; background: #fbfcfe; padding: 12px 14px; }
+.weights-breakdown-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+.weight-chip { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 4px; background: #edf2f7; color: #475569; }

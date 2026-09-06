@@ -39,9 +39,22 @@ function createMockDiagnosis(
   };
 }
 
+const mockPreset: LocationPreset = {
+  id: "leh",
+  name: "Leh",
+  lat: 34.1526,
+  lon: 77.5771,
+  elevation_m: 3500,
+  state: "Ladakh",
+  climate_type: "Cold",
+  t_out_design_heating_c: -20,
+  t_out_design_cooling_c: 25,
+  solar_peak_w_m2: 900,
+};
+
 function createMockConfig(overrides: Partial<ShelterFullConfiguration> = {}): ShelterFullConfiguration {
   return {
-    location: { lat: 34.1526, lon: 77.5771, preset: { id: "leh", name: "Leh" } as any },
+    location: { lat: 34.1526, lon: 77.5771, preset: mockPreset },
     geometry: { length_m: 6.0, width_m: 4.0, height_m: 2.8 },
     wallLayers: [{ material_id: "puf_panel", thickness_m: 0.05 }],
     roofLayers: [{ material_id: "puf_panel", thickness_m: 0.05 }],
@@ -57,6 +70,43 @@ function createMockConfig(overrides: Partial<ShelterFullConfiguration> = {}): Sh
     ...overrides,
   };
 }
+
+const mockSteadyState: SteadyStateResult = {
+  u_eff_w_per_k: 100,
+  q_conductance_w_per_k: 80,
+  q_ventilation_w_per_k: 20,
+  q_internal_w: 300,
+  q_solar_w: 100,
+};
+
+const mockHourly: HourlyResult[] = [
+  {
+    hour: 12,
+    timestamp: "12:00",
+    t_out_c: 20,
+    t_in_c: 32,
+    q_heating_w: 0,
+    q_cooling_w: 0,
+    q_solar_w: 50,
+    q_vent_w: 0,
+    q_cond_w: 0,
+    q_int_w: 0,
+    in_comfort_band: false,
+  },
+  {
+    hour: 4,
+    timestamp: "04:00",
+    t_out_c: -5,
+    t_in_c: 12,
+    q_heating_w: 0,
+    q_cooling_w: 0,
+    q_solar_w: 0,
+    q_vent_w: 0,
+    q_cond_w: 0,
+    q_int_w: 0,
+    in_comfort_band: false,
+  },
+];
 
 describe("Thermal Fix Engine (Stage 9)", () => {
   test("1. Overheating generates appropriate candidates (wall/roof insulation, reduce glazing)", () => {
@@ -193,11 +243,8 @@ describe("Thermal Fix Engine (Stage 9)", () => {
       capacitance_j_per_k: 10000000,
       capacitance_clamped: false,
       mode: "floating",
-      steady_state: {} as any,
-      hourly: [
-        { timestamp: "12:00", t_out_c: 20, t_in_c: 32 } as any,
-        { timestamp: "04:00", t_out_c: -5, t_in_c: 12 } as any,
-      ],
+      steady_state: mockSteadyState,
+      hourly: mockHourly,
       comfort: {
         comfort_pct: 50.0,
         hours_in_band: 12,
