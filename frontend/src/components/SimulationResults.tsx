@@ -37,24 +37,24 @@ import {
 import { useShelterConfiguration } from "@/context/ShelterConfigurationContext";
 import {
   diagnoseThermalPerformance,
-  HourlyAssessment,
-  ThermalContributor,
-  ThermalDiagnosis,
-  ThermalSeverity,
-} from "@/lib/thermalDiagnosis.ts";
+  type HourlyAssessment,
+  type ThermalContributor,
+  type ThermalDiagnosis,
+  type ThermalSeverity,
+} from "@/lib/thermalDiagnosis";
 import {
   generateFeasibleFixCandidates,
   evaluateThermalFix,
-  ThermalFixCandidate,
-  ThermalFixEvaluation,
-  ShelterFullConfiguration,
-} from "@/lib/thermalFixes.ts";
+  type ThermalFixCandidate,
+  type ThermalFixEvaluation,
+  type ShelterFullConfiguration,
+} from "@/lib/thermalFixes";
 import {
   runThermalOptimization,
-  OptimizationRun,
-  OptimizationResult,
+  type OptimizationRun,
+  type OptimizationResult,
   DEFAULT_OPTIMIZATION_WEIGHTS,
-} from "@/lib/thermalOptimizer.ts";
+} from "@/lib/thermalOptimizer";
 
 export function SimulationResults({
   onNavigateToSimulation,

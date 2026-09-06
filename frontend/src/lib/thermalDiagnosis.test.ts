@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import {
   diagnoseThermalPerformance,
   type ThermalDiagnosis,
-} from "./thermalDiagnosis.ts";
-import type { SimulationResponse, HourlySimulationPoint } from "./api.ts";
+} from "./thermalDiagnosis";
+import type { SimulationResponse, HourlySimulationPoint } from "./api";
 
 function createMockSimulation(
   hourlyTemps: number[],

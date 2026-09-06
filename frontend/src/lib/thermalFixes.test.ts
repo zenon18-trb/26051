@@ -5,9 +5,9 @@ import {
   compareSimulationResults,
   type ShelterFullConfiguration,
   INSULATION_INCREMENT_M,
-} from "./thermalFixes.ts";
-import type { ThermalDiagnosis } from "./thermalDiagnosis.ts";
-import type { SimulationResponse } from "./api.ts";
+} from "./thermalFixes";
+import type { ThermalDiagnosis } from "./thermalDiagnosis";
+import type { SimulationResponse } from "./api";
 
 function createMockDiagnosis(
   status: "good" | "warning" | "critical",

@@ -19,9 +19,9 @@ import type {
   SimulationResponse,
   VentConfig,
   WindowConfig,
-} from "./api.ts";
-import { serializeSimulationRequest, simulateShelter } from "./api.ts";
-import type { ThermalDiagnosis } from "./thermalDiagnosis.ts";
+} from "./api";
+import { serializeSimulationRequest, simulateShelter } from "./api";
+import type { ThermalDiagnosis } from "./thermalDiagnosis";
 
 export type ThermalFixType =
   | "increase_wall_insulation"

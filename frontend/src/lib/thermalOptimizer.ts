@@ -17,9 +17,9 @@
 import type {
   MaterialLayer,
   SimulationResponse,
-} from "./api.ts";
-import { serializeSimulationRequest, simulateShelter } from "./api.ts";
-import type { ShelterFullConfiguration } from "./thermalFixes.ts";
+} from "./api";
+import { serializeSimulationRequest, simulateShelter } from "./api";
+import type { ShelterFullConfiguration } from "./thermalFixes";
 
 export interface OptimizationWeights {
   comfortWeight: number; // default: 0.60

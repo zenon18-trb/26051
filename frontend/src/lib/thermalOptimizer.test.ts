@@ -6,9 +6,9 @@ import {
   calculateOptimizationScore,
   generateCandidateExplanation,
   DEFAULT_OPTIMIZATION_WEIGHTS,
-} from "./thermalOptimizer.ts";
-import type { ShelterFullConfiguration } from "./thermalFixes.ts";
-import type { SimulationResponse, LocationPreset, HourlyResult, SteadyStateResult } from "./api.ts";
+} from "./thermalOptimizer";
+import type { ShelterFullConfiguration } from "./thermalFixes";
+import type { SimulationResponse, LocationPreset, HourlyResult, SteadyStateResult } from "./api";
 
 const mockPreset: LocationPreset = {
   id: "leh",
