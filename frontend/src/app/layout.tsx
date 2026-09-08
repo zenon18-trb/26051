@@ -1,8 +1,23 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { Instrument_Serif, Inter } from "next/font/google";
 
 import { ShelterConfigurationProvider } from "@/context/ShelterConfigurationContext";
 import "./globals.css";
+
+const instrumentSerif = Instrument_Serif({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const inter = Inter({
+  weight: ["400", "500"],
+  subsets: ["latin"],
+  variable: "--font-body",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Shelter Thermal Designer | DRDO",
@@ -17,7 +32,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased"><ShelterConfigurationProvider>{children}</ShelterConfigurationProvider></body>
+      <body className={`${instrumentSerif.variable} ${inter.variable} min-h-screen antialiased`}>
+        <ShelterConfigurationProvider>{children}</ShelterConfigurationProvider>
+      </body>
     </html>
   );
 }

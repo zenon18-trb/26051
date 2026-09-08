@@ -14,20 +14,14 @@ import {
   Activity,
   AppWindow,
   Box,
-  ChevronDown,
   ClipboardList,
   CloudSun,
-  Download,
   FlaskConical,
   Gauge,
-  HelpCircle,
   LayoutDashboard,
   Menu,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Settings,
   ShieldCheck,
-  Thermometer,
+  X,
   CheckCircle2,
   Layers,
   Wind,
@@ -35,7 +29,29 @@ import {
 
 import { SystemStatus } from "@/components/SystemStatus";
 
-const navigation = [
+const HERO_VIDEO =
+  "https://designerstephen.github.io/public-assets/videos/serene-art-hero.mp4";
+
+const centerLinks = [
+  { label: "Location", item: "Location Climate" },
+  { label: "Configuration", item: "Shelter Configuration" },
+  { label: "Analysis", item: "Analysis" },
+  { label: "Reports", item: "Reports" },
+] as const;
+
+const pipeline = [
+  { label: "Overview", item: "Dashboard" },
+  { label: "Location", item: "Location Climate" },
+  { label: "Geometry", item: "Shelter Configuration" },
+  { label: "Materials", item: "Materials Library" },
+  { label: "Windows", item: "Windows & Glazing" },
+  { label: "Ventilation", item: "Ventilation & Occupants" },
+  { label: "HVAC", item: "HVAC & Thermal Control" },
+  { label: "Analysis", item: "Analysis" },
+  { label: "Reports", item: "Reports" },
+] as const;
+
+const mobileNav = [
   { label: "Dashboard", icon: LayoutDashboard },
   { label: "Location Climate", icon: CloudSun },
   { label: "Shelter Configuration", icon: Box },
@@ -49,7 +65,7 @@ const navigation = [
 
 export default function Home() {
   const [activeItem, setActiveItem] = useState("Dashboard");
-  const [collapsed, setCollapsed] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const {
     climate,
     geometry,
@@ -68,38 +84,77 @@ export default function Home() {
     isHvacConfigured,
   } = useShelterConfiguration();
 
+  const isDashboard = activeItem === "Dashboard";
+
+  function goTo(item: string) {
+    setActiveItem(item);
+    setMenuOpen(false);
+  }
+
   return (
     <div className="app-shell">
-      <aside className={`sidebar ${collapsed ? "sidebar-collapsed" : ""}`}>
-        <div className="sidebar-brand">
-          <div className="brand-mark"><Thermometer aria-hidden /></div>
-          {!collapsed && <div><p className="brand-title">Shelter Thermal</p><p className="brand-subtitle">Designer</p></div>}
-        </div>
-        <div className="sidebar-section-label">WORKSPACE</div>
-        <nav className="sidebar-nav" aria-label="Primary navigation">
-          {navigation.map(({ label, icon: Icon }) => (
-            <button
-              key={label}
-              className={`nav-item ${activeItem === label ? "nav-item-active" : ""}`}
-              onClick={() => setActiveItem(label)}
-              title={collapsed ? label : undefined}
-            >
-              <Icon aria-hidden /><span>{!collapsed && label}</span>
-            </button>
-          ))}
-        </nav>
-        <div className="sidebar-footer">
-          <button className="nav-item" title={collapsed ? "Settings" : undefined}><Settings aria-hidden />{!collapsed && <span>Settings</span>}</button>
-          <button className="nav-item" title={collapsed ? "Help & Documentation" : undefined}><HelpCircle aria-hidden />{!collapsed && <span>Help & Documentation</span>}</button>
-          <button className="collapse-button" onClick={() => setCollapsed(!collapsed)} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <PanelLeftOpen aria-hidden /> : <PanelLeftClose aria-hidden />}{!collapsed && <span>Collapse sidebar</span>}</button>
-        </div>
-      </aside>
+      {isDashboard ? (
+        <section className="hero-section">
+          <video
+            className="hero-video"
+            autoPlay
+            muted
+            loop
+            playsInline
+            aria-hidden
+          >
+            <source src={HERO_VIDEO} type="video/mp4" />
+          </video>
+          <div className="hero-overlay" />
+          <EditorialNav
+            overlay
+            activeItem={activeItem}
+            menuOpen={menuOpen}
+            onToggleMenu={() => setMenuOpen((open) => !open)}
+            onNavigate={goTo}
+          />
+          <div className="hero-content">
+            <h1 className="hero-heading">
+              Area-specific <em>shelter</em> thermal design
+            </h1>
+            <p className="hero-copy">
+              A first-order estimation tool for heat flow, 24-hour indoor
+              temperature, and comfort — traceable physics, not CFD.
+            </p>
+            <div className="hero-cta">
+              <button
+                className="pill-button pill-button-hero"
+                onClick={() => goTo("Location Climate")}
+              >
+                Begin analysis
+              </button>
+            </div>
+          </div>
+        </section>
+      ) : (
+        <EditorialNav
+          overlay={false}
+          activeItem={activeItem}
+          menuOpen={menuOpen}
+          onToggleMenu={() => setMenuOpen((open) => !open)}
+          onNavigate={goTo}
+        />
+      )}
 
       <div className="main-area">
-        <header className="topbar">
-          <div className="topbar-left"><button className="mobile-menu" aria-label="Open navigation"><Menu aria-hidden /></button><span className="breadcrumb-muted">Workspace</span><span className="breadcrumb-separator">/</span><span>{activeItem}</span></div>
-          <div className="topbar-right"><span className="env-badge"><span className="live-dot" />Development</span><button className="icon-button" aria-label="Download report"><Download aria-hidden /></button><div className="user-chip"><span className="avatar">DR</span><span className="user-name">DRDO Engineer</span><ChevronDown aria-hidden /></div></div>
-        </header>
+        {!isDashboard && (
+          <div className="stage-strip" aria-label="Design pipeline">
+            {pipeline.map(({ label, item }) => (
+              <button
+                key={item}
+                className={`stage-chip ${activeItem === item ? "stage-chip-active" : ""}`}
+                onClick={() => goTo(item)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
 
         <main className="content-area">
           {activeItem === "Location Climate" && <LocationClimate />}
@@ -109,48 +164,96 @@ export default function Home() {
           {activeItem === "Ventilation & Occupants" && <VentilationOccupants />}
           {activeItem === "HVAC & Thermal Control" && <HvacThermalControl />}
           {activeItem === "Analysis" && (
-            <ThermalSimulation onNavigateToResults={() => setActiveItem("Reports")} />
+            <ThermalSimulation onNavigateToResults={() => goTo("Reports")} />
           )}
           {activeItem === "Reports" && (
-            <SimulationResults onNavigateToSimulation={() => setActiveItem("Analysis")} />
+            <SimulationResults onNavigateToSimulation={() => goTo("Analysis")} />
           )}
-          {activeItem !== "Location Climate" &&
-            activeItem !== "Shelter Configuration" &&
-            activeItem !== "Materials Library" &&
-            activeItem !== "Windows & Glazing" &&
-            activeItem !== "Ventilation & Occupants" &&
-            activeItem !== "HVAC & Thermal Control" &&
-            activeItem !== "Analysis" &&
-            activeItem !== "Reports" && (
-              <DashboardHome
-                climateConfigured={Boolean(climate)}
-                geometryConfigured={Boolean(geometry)}
-                materialsConfigured={isMaterialsConfigured}
-                windowsConfigured={isWindowsConfigured}
-                ventilationConfigured={isVentilationConfigured}
-                occupantsConfigured={isOccupantsConfigured}
-                stage5Configured={isVentilationAndOccupantsConfigured}
-                hvacConfigured={isHvacConfigured}
-                hvacMode={hvac?.mode}
-                hvacSetpoint={hvac?.setpoint_c}
-                ventsOpen={vents?.open}
-                occupantsCount={occupants}
-                windowArea={windows?.area_m2}
-                locationName={location?.preset?.name}
-                wallLayersCount={wallLayers.length}
-                roofLayersCount={roofLayers.length}
-                geometrySummary={
-                  geometry
-                    ? `${geometry.length_m}m × ${geometry.width_m}m × ${geometry.height_m}m (${geometry.orientation ?? "North"})`
-                    : undefined
-                }
-                onNavigate={(item) => setActiveItem(item)}
-              />
-            )}
+          {isDashboard && (
+            <DashboardHome
+              climateConfigured={Boolean(climate)}
+              geometryConfigured={Boolean(geometry)}
+              materialsConfigured={isMaterialsConfigured}
+              windowsConfigured={isWindowsConfigured}
+              ventilationConfigured={isVentilationConfigured}
+              occupantsConfigured={isOccupantsConfigured}
+              stage5Configured={isVentilationAndOccupantsConfigured}
+              hvacConfigured={isHvacConfigured}
+              hvacMode={hvac?.mode}
+              hvacSetpoint={hvac?.setpoint_c}
+              ventsOpen={vents?.open}
+              occupantsCount={occupants}
+              windowArea={windows?.area_m2}
+              locationName={location?.preset?.name}
+              wallLayersCount={wallLayers.length}
+              roofLayersCount={roofLayers.length}
+              geometrySummary={
+                geometry
+                  ? `${geometry.length_m}m × ${geometry.width_m}m × ${geometry.height_m}m (${geometry.orientation ?? "North"})`
+                  : undefined
+              }
+              onNavigate={(item) => goTo(item)}
+            />
+          )}
         </main>
-        <footer className="footer"><span>DRDO Thermal Analysis Initiative · Internal prototype</span><span>Data stays in your workspace</span></footer>
+        <footer className="footer">
+          <span>DRDO Thermal Analysis Initiative · Internal prototype</span>
+          <span>Data stays in your workspace</span>
+        </footer>
       </div>
     </div>
+  );
+}
+
+function EditorialNav({
+  overlay,
+  activeItem,
+  menuOpen,
+  onToggleMenu,
+  onNavigate,
+}: {
+  overlay: boolean;
+  activeItem: string;
+  menuOpen: boolean;
+  onToggleMenu: () => void;
+  onNavigate: (item: string) => void;
+}) {
+  return (
+    <header className={`editorial-nav ${overlay ? "editorial-nav-overlay" : "editorial-nav-solid"}`}>
+      <div className="editorial-nav-inner">
+        <button className="brand-wordmark" onClick={() => onNavigate("Dashboard")}>
+          Shelter Thermal<sup>®</sup>
+        </button>
+        <nav className="nav-center" aria-label="Primary navigation">
+          {centerLinks.map(({ label, item }) => (
+            <button
+              key={item}
+              className={activeItem === item ? "nav-link-active" : undefined}
+              onClick={() => onNavigate(item)}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+        <div className="nav-right">
+          <button className="mobile-menu" aria-label={menuOpen ? "Close navigation" : "Open navigation"} onClick={onToggleMenu}>
+            {menuOpen ? <X aria-hidden /> : <Menu aria-hidden />}
+          </button>
+          <button className="pill-button" onClick={() => onNavigate("Location Climate")}>
+            Begin analysis
+          </button>
+        </div>
+      </div>
+      {menuOpen && (
+        <div className="mobile-drawer mobile-drawer-open">
+          {mobileNav.map(({ label }) => (
+            <button key={label} onClick={() => onNavigate(label)}>
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+    </header>
   );
 }
 
@@ -203,7 +306,7 @@ function DashboardHome({
     <>
       <div className="page-heading">
         <div>
-          <p className="eyebrow">SIH26051 · THERMAL ANALYSIS WORKSPACE</p>
+          <p className="eyebrow">SIH26051 · Thermal analysis workspace</p>
           <h1>Welcome to Shelter Thermal Designer</h1>
           <p className="page-description">
             Configure your shelter design and run area-specific thermal analysis for extreme environments.
@@ -446,7 +549,3 @@ function WorkflowCard({
     </button>
   );
 }
-
-
-
-
