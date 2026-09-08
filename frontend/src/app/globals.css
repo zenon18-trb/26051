@@ -679,10 +679,10 @@ button { font: inherit; color: inherit; }
 .geometry-preset-btn-active { border-color: #3180a7; background: #eff6fa; box-shadow: 0 0 0 1px #3180a7; }
 .geometry-preset-btn strong { font-size: 11px; color: var(--navy); }
 .geometry-preset-btn span { font-size: 10px; color: #768a96; }
-.geometry-inputs-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 14px; }
-.geometry-field { display: flex; flex-direction: column; }
+.geometry-inputs-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+.geometry-field { display: flex; min-width: 0; flex-direction: column; }
 .geometry-field label { display: flex; flex-direction: column; gap: 6px; color: #526c7a; font-size: 11px; font-weight: 700; }
-.geometry-field input { min-width: 0; border: 1px solid #d2dfe5; border-radius: 5px; padding: 10px; color: var(--ink); outline: none; font-size: 13px; }
+.geometry-field input { width: 100%; min-width: 0; border: 1px solid #d2dfe5; border-radius: 5px; padding: 10px; color: var(--ink); outline: none; font-size: 13px; }
 .geometry-field input:focus { border-color: #6ca4bf; box-shadow: 0 0 0 2px #eaf4f8; }
 .geometry-field input.input-error { border-color: #d97870; background: #fff8f7; }
 .field-error-msg { margin-top: 4px; color: #b8493d; font-size: 10px; font-weight: 600; line-height: 1.3; }
@@ -1454,6 +1454,13 @@ select:focus-visible {
 }
 
 /* Keep the terrain system last: legacy stage declarations above remain layout-only. */
+:root {
+  /* Cards in the terrain theme use a light surface, so inherited semantic text
+     tokens must stay dark as well. */
+  --navy: #253128;
+  --ink: #253128;
+}
+
 .app-shell { background: transparent; }
 .app-header-solid { background: rgba(233, 228, 215, .9); border-color: var(--ring); }
 .brand-lockup, .app-header-solid .brand-lockup { color: #17211c; }
