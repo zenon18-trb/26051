@@ -1500,3 +1500,54 @@ select:focus-visible {
   .app-shell-landing .main-area { margin-left: 0; }
   .app-shell-landing .hero-section { width: 100%; margin-left: 0; }
 }
+
+/* The dashboard remains a full-width landing screen; the sidebar starts after navigation. */
+@media (min-width: 851px) {
+  .app-shell-landing .app-header,
+  .app-shell-landing .app-header.app-header-overlay {
+    position: absolute;
+    inset: 28px 0 auto;
+    width: 100%;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    backdrop-filter: none;
+  }
+  .app-shell-landing .app-header-inner {
+    display: grid;
+    width: min(1440px, 100%);
+    height: auto;
+    margin: 0 auto;
+    padding: 0 48px;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+  }
+  .app-shell-landing .brand-lockup {
+    width: auto;
+    padding: 0;
+    border: 0;
+    color: #fffaf0;
+  }
+  .app-shell-landing .nav-center {
+    display: flex;
+    margin: 0;
+    flex-direction: row;
+    gap: 28px;
+  }
+  .app-shell-landing .sidebar-nav-label { display: none; }
+  .app-shell-landing .nav-center button {
+    display: inline-flex;
+    width: auto;
+    padding: 0;
+    border-radius: 0;
+    color: #fffaf0;
+    font-size: 13px;
+  }
+  .app-shell-landing .nav-center button:hover { background: transparent; color: #fffaf0; }
+  .app-shell-landing .nav-right {
+    width: auto;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+}

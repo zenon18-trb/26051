@@ -87,7 +87,7 @@ export default function Home() {
   }
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${isDashboard ? "app-shell-landing" : ""}`}>
       {isDashboard ? (
         <section className="hero-section">
           <img className="hero-image" src={HERO_IMAGE} alt="" />
