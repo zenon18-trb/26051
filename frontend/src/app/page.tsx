@@ -58,6 +58,13 @@ const mobileNav = [
 
 const sidebarNav = mobileNav.filter(({ label }) => label !== "Dashboard");
 
+const landingNav = [
+  { label: "Overview", item: "Dashboard" },
+  { label: "Climate", item: "Location Climate" },
+  { label: "Analysis", item: "Analysis" },
+  { label: "Reports", item: "Reports" },
+] as const;
+
 export default function Home() {
   const [activeItem, setActiveItem] = useState("Dashboard");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -225,6 +232,8 @@ function AppHeader({
   onToggleMenu: () => void;
   onNavigate: (item: string) => void;
 }) {
+  const navItems = overlay ? landingNav : sidebarNav;
+
   return (
     <header className={`app-header ${overlay ? "app-header-overlay" : "app-header-solid"}`}>
       <div className="app-header-inner">
@@ -236,18 +245,23 @@ function AppHeader({
           </span>
         </button>
         <nav className="nav-center" aria-label="Primary navigation">
-          <span className="sidebar-nav-label">Workspace</span>
-          {sidebarNav.map(({ label, icon: Icon }) => (
+          {!overlay && <span className="sidebar-nav-label">Workspace</span>}
+          {navItems.map(({ label, ...navItem }) => {
+            const item = "item" in navItem ? navItem.item : label;
+            const Icon = "icon" in navItem ? navItem.icon : undefined;
+
+            return (
             <button
-              key={label}
-              className={activeItem === label ? "nav-link-active" : undefined}
-              onClick={() => onNavigate(label)}
-              aria-current={activeItem === label ? "page" : undefined}
+              key={item}
+              className={activeItem === item ? "nav-link-active" : undefined}
+              onClick={() => onNavigate(item)}
+              aria-current={activeItem === item ? "page" : undefined}
             >
-              <Icon aria-hidden />
+              {Icon && <Icon aria-hidden />}
               {label}
             </button>
-          ))}
+            );
+          })}
         </nav>
         <div className="nav-right">
           <button
