@@ -42,37 +42,34 @@ export function SystemStatus() {
     void requestHealth();
   }
 
+  const chipTone =
+    status === "connected" ? "pass" : status === "checking" ? "warn" : "fail";
+
   return (
-    <section
-      aria-labelledby="system-status-heading"
-      className="status-card"
-    >
+    <section aria-labelledby="system-status-heading" className="status-card">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 id="system-status-heading" className="text-sm font-semibold text-slate-900">
-            System status
-          </h2>
-          <p className="mt-1 text-sm text-slate-600">Live check of GET /api/health</p>
+          <h2 id="system-status-heading">System status</h2>
+          <p>Live check of GET /api/health</p>
         </div>
-        <Server className="h-5 w-5 shrink-0 text-slate-500" aria-hidden />
+        <Server aria-hidden />
       </div>
 
-      <p
-        className="mt-4 flex items-center gap-2 text-sm font-medium text-slate-900"
-        role="status"
-        aria-live="polite"
-      >
-        <StatusMark status={status} />
-        <span>{statusLabel(status)}</span>
+      <p className="status-line" role="status" aria-live="polite">
+        {status === "checking" ? (
+          <LoaderCircle className="spin" aria-hidden />
+        ) : status === "connected" ? null : (
+          <CircleAlert aria-hidden />
+        )}
+        <span className={`v-chip v-chip-${chipTone}`}>
+          <span className="v-chip-dot" />
+          {statusLabel(status)}
+        </span>
       </p>
-      <p className="mt-2 text-sm leading-6 text-slate-600">{detail}</p>
+      <p className="status-detail">{detail}</p>
 
       {status !== "checking" && status !== "misconfigured" ? (
-        <button
-          type="button"
-          onClick={handleCheckAgain}
-          className="mt-4 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-800 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
-        >
+        <button type="button" onClick={handleCheckAgain} className="btn-square btn-square-ghost">
           Check again
         </button>
       ) : null}
@@ -91,19 +88,4 @@ function statusLabel(status: Status): string {
     case "misconfigured":
       return "Frontend configuration error";
   }
-}
-
-function StatusMark({ status }: { status: Status }) {
-  if (status === "checking") {
-    return <LoaderCircle className="h-4 w-4 animate-spin text-blue-700" aria-hidden />;
-  }
-  if (status === "connected") {
-    return (
-      <span
-        className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-600"
-        aria-hidden
-      />
-    );
-  }
-  return <CircleAlert className="h-4 w-5 text-amber-700" aria-hidden />;
 }

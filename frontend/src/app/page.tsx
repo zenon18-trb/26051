@@ -13,6 +13,7 @@ import { useShelterConfiguration } from "@/context/ShelterConfigurationContext";
 import {
   Activity,
   AppWindow,
+  ArrowUpRight,
   Box,
   ClipboardList,
   CloudSun,
@@ -23,18 +24,17 @@ import {
   ShieldCheck,
   X,
   CheckCircle2,
-  Layers,
   Wind,
 } from "lucide-react";
 
 import { SystemStatus } from "@/components/SystemStatus";
 
-const HERO_VIDEO =
-  "https://designerstephen.github.io/public-assets/videos/serene-art-hero.mp4";
+const HERO_IMAGE =
+  "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2400&q=85";
 
 const centerLinks = [
-  { label: "Location", item: "Location Climate" },
-  { label: "Configuration", item: "Shelter Configuration" },
+  { label: "Dashboard", item: "Dashboard" },
+  { label: "Location Climate", item: "Location Climate" },
   { label: "Analysis", item: "Analysis" },
   { label: "Reports", item: "Reports" },
 ] as const;
@@ -95,18 +95,10 @@ export default function Home() {
     <div className="app-shell">
       {isDashboard ? (
         <section className="hero-section">
-          <video
-            className="hero-video"
-            autoPlay
-            muted
-            loop
-            playsInline
-            aria-hidden
-          >
-            <source src={HERO_VIDEO} type="video/mp4" />
-          </video>
-          <div className="hero-overlay" />
-          <EditorialNav
+          <img className="hero-image" src={HERO_IMAGE} alt="" />
+          <div className="hero-scrim" />
+          <div className="hero-glow" />
+          <AppHeader
             overlay
             activeItem={activeItem}
             menuOpen={menuOpen}
@@ -114,25 +106,33 @@ export default function Home() {
             onNavigate={goTo}
           />
           <div className="hero-content">
-            <h1 className="hero-heading">
-              Area-specific <em>shelter</em> thermal design
-            </h1>
+            <div className="hero-kicker-row">
+              <p className="eyebrow hero-eyebrow">SIH26051 · THERMAL ANALYSIS WORKSPACE</p>
+              <span className="terrain-status"><span /> FIELD READY</span>
+            </div>
+            <h1 className="headline-fluid">Design for the conditions <em>beyond</em> the map.</h1>
             <p className="hero-copy">
-              A first-order estimation tool for heat flow, 24-hour indoor
-              temperature, and comfort — traceable physics, not CFD.
+              Configure your shelter design and run area-specific thermal analysis for extreme environments.
             </p>
             <div className="hero-cta">
-              <button
-                className="pill-button pill-button-hero"
-                onClick={() => goTo("Location Climate")}
-              >
-                Begin analysis
+              <button type="button" className="btn-square btn-square-hero" onClick={() => goTo("Location Climate")}>
+                Begin configuration
+                <ArrowUpRight className="btn-arrow-lg" aria-hidden />
               </button>
             </div>
+            <div className="hero-coordinates" aria-label="Terrain design values">
+              <span>ALTITUDE / VARIABLE</span>
+              <span>ORIENTATION / NORTH</span>
+              <span>MODEL / FIRST-ORDER</span>
+            </div>
           </div>
+          <div className="terrain-lines" aria-hidden>
+            <i /><i /><i /><i /><i />
+          </div>
+          <p className="hero-index" aria-hidden>01 — START AT THE EDGE</p>
         </section>
       ) : (
-        <EditorialNav
+        <AppHeader
           overlay={false}
           activeItem={activeItem}
           menuOpen={menuOpen}
@@ -149,6 +149,7 @@ export default function Home() {
                 key={item}
                 className={`stage-chip ${activeItem === item ? "stage-chip-active" : ""}`}
                 onClick={() => goTo(item)}
+                aria-current={activeItem === item ? "step" : undefined}
               >
                 {label}
               </button>
@@ -205,7 +206,18 @@ export default function Home() {
   );
 }
 
-function EditorialNav({
+function BrandMark() {
+  return (
+    <svg className="brand-geo" viewBox="0 0 28 28" aria-hidden>
+      <rect x="1" y="1" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="15" y="1" width="12" height="12" fill="currentColor" />
+      <rect x="1" y="15" width="12" height="12" fill="currentColor" />
+      <rect x="15" y="15" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+function AppHeader({
   overlay,
   activeItem,
   menuOpen,
@@ -219,10 +231,14 @@ function EditorialNav({
   onNavigate: (item: string) => void;
 }) {
   return (
-    <header className={`editorial-nav ${overlay ? "editorial-nav-overlay" : "editorial-nav-solid"}`}>
-      <div className="editorial-nav-inner">
-        <button className="brand-wordmark" onClick={() => onNavigate("Dashboard")}>
-          Shelter Thermal<sup>®</sup>
+    <header className={`app-header ${overlay ? "app-header-overlay" : "app-header-solid"}`}>
+      <div className="app-header-inner">
+        <button type="button" className="brand-lockup" onClick={() => onNavigate("Dashboard")}>
+          <BrandMark />
+          <span className="brand-name">
+            Shelter Thermal
+            <small>Designer</small>
+          </span>
         </button>
         <nav className="nav-center" aria-label="Primary navigation">
           {centerLinks.map(({ label, item }) => (
@@ -230,30 +246,66 @@ function EditorialNav({
               key={item}
               className={activeItem === item ? "nav-link-active" : undefined}
               onClick={() => onNavigate(item)}
+              aria-current={activeItem === item ? "page" : undefined}
             >
               {label}
             </button>
           ))}
         </nav>
         <div className="nav-right">
-          <button className="mobile-menu" aria-label={menuOpen ? "Close navigation" : "Open navigation"} onClick={onToggleMenu}>
+          <button
+            className="mobile-menu"
+            aria-label={menuOpen ? "Close navigation" : "Open navigation"}
+            onClick={onToggleMenu}
+          >
             {menuOpen ? <X aria-hidden /> : <Menu aria-hidden />}
           </button>
-          <button className="pill-button" onClick={() => onNavigate("Location Climate")}>
-            Begin analysis
+          <button type="button" className="btn-square btn-square-nav" onClick={() => onNavigate("Location Climate")}>
+            Begin configuration
+            <ArrowUpRight className="btn-arrow" aria-hidden />
           </button>
         </div>
       </div>
       {menuOpen && (
-        <div className="mobile-drawer mobile-drawer-open">
-          {mobileNav.map(({ label }) => (
-            <button key={label} onClick={() => onNavigate(label)}>
-              {label}
+        <div className="mobile-fullscreen" role="dialog" aria-label="Navigation">
+          <div className="mobile-fullscreen-bar">
+            <button type="button" className="brand-lockup" onClick={() => onNavigate("Dashboard")}>
+              <BrandMark />
+              <span className="brand-name">Shelter Thermal</span>
             </button>
-          ))}
+            <button className="mobile-menu" aria-label="Close navigation" onClick={onToggleMenu}>
+              <X aria-hidden />
+            </button>
+          </div>
+          <nav className="mobile-fullscreen-nav">
+            {mobileNav.map(({ label }) => (
+              <button key={label} onClick={() => onNavigate(label)} aria-current={activeItem === label ? "page" : undefined}>
+                {label}
+              </button>
+            ))}
+          </nav>
+          <button type="button" className="btn-square btn-square-hero" onClick={() => onNavigate("Location Climate")}>
+            Begin configuration
+            <ArrowUpRight className="btn-arrow-lg" aria-hidden />
+          </button>
         </div>
       )}
     </header>
+  );
+}
+
+function StatusChip({
+  tone,
+  children,
+}: {
+  tone: "pass" | "warn" | "fail";
+  children: ReactNode;
+}) {
+  return (
+    <span className={`v-chip v-chip-${tone}`}>
+      <span className="v-chip-dot" />
+      {children}
+    </span>
   );
 }
 
@@ -302,25 +354,111 @@ function DashboardHome({
     (stage5Configured ? 1 : 0) +
     (hvacConfigured ? 1 : 0);
 
+  const workflowRows = [
+    {
+      id: "01-LOC",
+      title: "Location Climate",
+      item: "Location Climate",
+      configured: climateConfigured,
+      detail: climateConfigured
+        ? locationName
+          ? `${locationName} climate configured.`
+          : "Climate profile configured."
+        : "Select a location and review climate parameters.",
+    },
+    {
+      id: "02-GEOM",
+      title: "Shelter Geometry",
+      item: "Shelter Configuration",
+      configured: geometryConfigured,
+      detail: geometryConfigured ? (geometrySummary ?? "Geometry configured.") : "Define dimensions and physical orientation.",
+    },
+    {
+      id: "03-ENV",
+      title: "Materials & Envelope",
+      item: "Materials Library",
+      configured: materialsConfigured,
+      detail: materialsConfigured
+        ? `Wall: ${wallLayersCount} · Roof: ${roofLayersCount} layers`
+        : "Select materials and build wall/roof assemblies.",
+    },
+    {
+      id: "04-GLZ",
+      title: "Windows & Glazing",
+      item: "Windows & Glazing",
+      configured: windowsConfigured,
+      detail: windowsConfigured
+        ? `${windowArea !== undefined ? windowArea.toFixed(1) : "0.0"} m² window area`
+        : "Define glazed aperture area and glazing type.",
+    },
+    {
+      id: "05-OCC",
+      title: "Ventilation & Occupants",
+      item: "Ventilation & Occupants",
+      configured: stage5Configured,
+      detail: stage5Configured
+        ? `${ventsOpen ? "Open (5.0 ACH)" : "Closed (0.5 ACH)"} · ${occupantsCount ?? 0} pers`
+        : "Configure natural air exchange and internal occupant load.",
+    },
+    {
+      id: "06-HVAC",
+      title: "HVAC & Control",
+      item: "HVAC & Thermal Control",
+      configured: hvacConfigured,
+      detail: hvacConfigured
+        ? hvacMode === "setpoint"
+          ? `Setpoint: ${hvacSetpoint !== null && hvacSetpoint !== undefined ? hvacSetpoint.toFixed(1) : "--"} °C`
+          : "Floating (0 W HVAC)"
+        : "Choose floating temperature or setpoint mode.",
+    },
+  ];
+
+  const firstPending = workflowRows.find((row) => !row.configured)?.id ?? workflowRows[workflowRows.length - 1].id;
+  const completePct = Math.round((completedCount / 6) * 100);
+
   return (
     <>
-      <div className="page-heading">
-        <div>
-          <p className="eyebrow">SIH26051 · Thermal analysis workspace</p>
-          <h1>Welcome to Shelter Thermal Designer</h1>
-          <p className="page-description">
-            Configure your shelter design and run area-specific thermal analysis for extreme environments.
-          </p>
-        </div>
-        <div className="prototype-tag"><ShieldCheck aria-hidden /> Prototype v0.1</div>
-      </div>
       <div className="notice">
         <ShieldCheck aria-hidden />
         <div>
           <strong>First-order estimation tool</strong>
-          <p>This workspace provides engineering estimates for early-stage design decisions. Results are not a substitute for CFD, EnergyPlus, or certification models.</p>
+          <p>
+            This workspace provides engineering estimates for early-stage design decisions. Results are not a
+            substitute for CFD, EnergyPlus, or certification models.
+          </p>
         </div>
       </div>
+
+      <section className="kpi-metrics-grid" aria-label="Workspace metrics">
+        <div className="kpi-cell">
+          <div className="kpi-figure">
+            <span className="kpi-number">{completedCount}</span>
+            <span className="kpi-unit">/6</span>
+          </div>
+          <p className="kpi-subline">Design workflow</p>
+        </div>
+        <div className="kpi-cell">
+          <div className="kpi-figure">
+            <span className="kpi-number">6</span>
+            <span className="kpi-unit">steps</span>
+          </div>
+          <p className="kpi-subline">Complete each step to prepare your thermal analysis.</p>
+        </div>
+        <div className="kpi-cell">
+          <div className="kpi-figure">
+            <span className="kpi-number">{completePct}</span>
+            <span className="kpi-unit">%</span>
+          </div>
+          <p className="kpi-subline">{completedCount} of 6 complete</p>
+        </div>
+        <div className="kpi-cell">
+          <div className="kpi-figure">
+            <span className="kpi-number">0.1</span>
+            <span className="kpi-unit">v</span>
+          </div>
+          <p className="kpi-subline">Prototype v0.1</p>
+        </div>
+      </section>
 
       <section className="section-block">
         <div className="section-heading">
@@ -330,88 +468,152 @@ function DashboardHome({
           </div>
           <span className="progress-copy">{completedCount} of 6 complete</span>
         </div>
-        <div className="workflow-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
-          <WorkflowCard
-            number="01"
-            icon={<CloudSun aria-hidden />}
-            title="Location Climate"
-            description={climateConfigured ? (locationName ? `${locationName} climate configured.` : "Climate profile configured.") : "Select a location and review climate parameters."}
-            configured={climateConfigured}
-            onClick={() => onNavigate("Location Climate")}
-          />
-          <WorkflowCard
-            number="02"
-            icon={<Box aria-hidden />}
-            title="Shelter Geometry"
-            description={geometryConfigured ? (geometrySummary ?? "Geometry configured.") : "Define dimensions and physical orientation."}
-            configured={geometryConfigured}
-            onClick={() => onNavigate("Shelter Configuration")}
-          />
-          <WorkflowCard
-            number="03"
-            icon={<Layers aria-hidden />}
-            title="Materials &amp; Envelope"
-            description={
-              materialsConfigured
-                ? `Wall: ${wallLayersCount} · Roof: ${roofLayersCount} layers`
-                : "Select materials and build wall/roof assemblies."
-            }
-            configured={materialsConfigured}
-            onClick={() => onNavigate("Materials Library")}
-          />
-          <WorkflowCard
-            number="04"
-            icon={<AppWindow aria-hidden />}
-            title="Windows &amp; Glazing"
-            description={
-              windowsConfigured
-                ? `${windowArea !== undefined ? windowArea.toFixed(1) : "0.0"} m² window area`
-                : "Define glazed aperture area and glazing type."
-            }
-            configured={windowsConfigured}
-            onClick={() => onNavigate("Windows & Glazing")}
-          />
-          <WorkflowCard
-            number="05"
-            icon={<Wind aria-hidden />}
-            title="Ventilation &amp; Occupants"
-            description={
-              stage5Configured
-                ? `${ventsOpen ? "Open (5.0 ACH)" : "Closed (0.5 ACH)"} · ${occupantsCount ?? 0} pers`
-                : "Configure natural air exchange and internal occupant load."
-            }
-            configured={stage5Configured}
-            onClick={() => onNavigate("Ventilation & Occupants")}
-          />
-          <WorkflowCard
-            number="06"
-            icon={<Gauge aria-hidden />}
-            title="HVAC &amp; Control"
-            description={
-              hvacConfigured
-                ? hvacMode === "setpoint"
-                  ? `Setpoint: ${hvacSetpoint !== null && hvacSetpoint !== undefined ? hvacSetpoint.toFixed(1) : "--"} °C`
-                  : "Floating (0 W HVAC)"
-                : "Choose floating temperature or setpoint mode."
-            }
-            configured={hvacConfigured}
-            onClick={() => onNavigate("HVAC & Thermal Control")}
-          />
+
+        <div className="bento-grid">
+          <article className="surface-card bento-card">
+            <header className="bento-card-head">
+              <h3>Design workflow</h3>
+              <StatusChip tone={completedCount === 6 ? "pass" : "fail"}>
+                {completedCount === 6 ? "PASS" : "FAIL"}
+              </StatusChip>
+            </header>
+            <ul className="status-rows">
+              {workflowRows.map((row) => (
+                <li key={row.id}>
+                  <button type="button" onClick={() => onNavigate(row.item)}>
+                    <span className="status-row-id">{row.id}</span>
+                    <span className="status-row-title">{row.title}</span>
+                    <StatusChip tone={row.configured ? "pass" : "fail"}>
+                      {row.configured ? "PASS" : "FAIL"}
+                    </StatusChip>
+                    <span className="status-row-delta">{row.configured ? "+100%" : "0%"}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </article>
+
+          <article className="surface-card bento-card">
+            <header className="bento-card-head">
+              <h3>Current project</h3>
+              <StatusChip tone={completedCount === 6 ? "pass" : "warn"}>
+                {completedCount === 6 ? "PASS" : "WARN"}
+              </StatusChip>
+            </header>
+            <div className="cluster-bars">
+              {workflowRows.map((row) => (
+                <div key={row.id} className="cluster-row">
+                  <div className="cluster-label">
+                    <span>{row.title}</span>
+                    <span className="data-muted">{row.configured ? "100%" : "0%"}</span>
+                  </div>
+                  <div className="cluster-track">
+                    <span
+                      className={`cluster-fill ${row.id === firstPending ? "cluster-fill-active" : ""}`}
+                      style={{ width: row.configured ? "100%" : "8%" }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className="surface-card bento-card">
+            <header className="bento-card-head">
+              <h3>First-order estimation tool</h3>
+              <StatusChip tone="warn">WARN</StatusChip>
+            </header>
+            <div className="diff-view" aria-label="Model assumptions">
+              <pre className="diff-line diff-add">+ First-order estimation tool</pre>
+              <pre className="diff-line diff-add">+ Engineering estimates for early-stage design decisions</pre>
+              <pre className="diff-line diff-mod">~ Results are not a substitute for CFD, EnergyPlus, or certification models.</pre>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section className="section-block">
+        <div className="surface-card event-stream">
+          <header className="event-stream-head">
+            <div>
+              <p className="eyebrow">Design workflow</p>
+              <h2>Complete each step to prepare your thermal analysis.</h2>
+            </div>
+            <div className="event-stream-chips">
+              <StatusChip tone="warn">SIH26051</StatusChip>
+              <StatusChip tone="pass">Prototype v0.1</StatusChip>
+            </div>
+          </header>
+          <div className="event-stream-body">
+            <aside className="event-sidebar">
+              {workflowRows.map((row) => (
+                <button
+                  key={row.id}
+                  className={`event-id-row ${row.id === firstPending ? "event-id-row-active" : ""}`}
+                  onClick={() => onNavigate(row.item)}
+                >
+                  <span className={`event-dot ${row.configured ? "event-dot-pass" : "event-dot-fail"}`} />
+                  <span>{row.id}</span>
+                </button>
+              ))}
+            </aside>
+            <div className="event-table-wrap">
+              <table className="event-table">
+                <thead>
+                  <tr>
+                    <th>SPAN</th>
+                    <th>START</th>
+                    <th>DURATION</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {workflowRows.map((row, index) => {
+                    const start = (index / workflowRows.length) * 100;
+                    const width = 100 / workflowRows.length;
+                    return (
+                      <tr
+                        key={row.id}
+                        className={row.id === firstPending ? "event-row-focus" : undefined}
+                        onClick={() => onNavigate(row.item)}
+                      >
+                        <td>
+                          <strong>{row.title}</strong>
+                          <span className="data-muted">{row.detail}</span>
+                        </td>
+                        <td>
+                          <div className="timeline">
+                            <span
+                              className={`timeline-bar ${row.id === firstPending ? "timeline-bar-active" : ""}`}
+                              style={{ left: `${start}%`, width: `${width}%` }}
+                            />
+                          </div>
+                        </td>
+                        <td>{row.configured ? "CONFIGURED" : "CONFIGURE"}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </section>
 
       <section className="lower-grid">
-        <div className="panel">
+        <div className="surface-card panel">
           <div className="panel-heading">
             <div>
               <h2>System status</h2>
               <p>Live connectivity and service health</p>
             </div>
-            <span className="status-live"><span className="live-dot" />Live</span>
+            <span className="status-live">
+              <span className="live-dot" />
+              Live
+            </span>
           </div>
           <SystemStatus />
         </div>
-        <div className="panel session-panel">
+        <div className="surface-card panel session-panel">
           <div className="panel-heading">
             <div>
               <h2>Current project</h2>
@@ -419,133 +621,159 @@ function DashboardHome({
             </div>
             <ClipboardList aria-hidden />
           </div>
-          <div className="empty-project">
-            {climateConfigured && geometryConfigured && materialsConfigured && windowsConfigured && stage5Configured && hvacConfigured ? (
-              <>
-                <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
-                <h3>Complete Shelter Model Ready for Simulation</h3>
-                <p>
-                  {locationName ? `${locationName} · ` : ""}
-                  {geometrySummary} · {windowArea !== undefined ? windowArea.toFixed(1) : "0.0"} m² glazing ·{" "}
-                  {ventsOpen ? "5.0 ACH Open" : "0.5 ACH Closed"} · {occupantsCount ?? 0} occupants ·{" "}
-                  {hvacMode === "setpoint" ? `Setpoint ${hvacSetpoint?.toFixed(1)} °C` : "Floating Drift (0 W HVAC)"}
-                </p>
-                <button className="primary-button" onClick={() => onNavigate("Analysis")}>
-                  Launch Thermal Simulation
-                </button>
-              </>
-            ) : climateConfigured && geometryConfigured && materialsConfigured && windowsConfigured && stage5Configured ? (
-              <>
-                <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
-                <h3>Shelter Envelope &amp; Occupancy Configured</h3>
-                <p>
-                  {locationName ? `${locationName} · ` : ""}
-                  {geometrySummary}. Next, configure HVAC operational mode and temperature setpoint.
-                </p>
-                <button className="primary-button" onClick={() => onNavigate("HVAC & Thermal Control")}>
-                  Configure HVAC &amp; setpoint
-                </button>
-              </>
-            ) : climateConfigured && geometryConfigured && materialsConfigured && windowsConfigured ? (
-              <>
-                <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
-                <h3>Glazed Envelope Configured</h3>
-                <p>
-                  {locationName ? `${locationName} · ` : ""}
-                  {geometrySummary}. Next, configure ventilation state and occupant internal heat load.
-                </p>
-                <button className="primary-button" onClick={() => onNavigate("Ventilation & Occupants")}>
-                  Configure ventilation &amp; occupants
-                </button>
-              </>
-            ) : climateConfigured && geometryConfigured && materialsConfigured ? (
-              <>
-                <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
-                <h3>Envelope Materials Ready</h3>
-                <p>
-                  {locationName ? `${locationName} · ` : ""}
-                  {geometrySummary}. Next, configure windows and glazing aperture.
-                </p>
-                <button className="primary-button" onClick={() => onNavigate("Windows & Glazing")}>
-                  Configure windows &amp; glazing
-                </button>
-              </>
-            ) : climateConfigured && geometryConfigured ? (
-              <>
-                <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
-                <h3>Location &amp; Geometry Configured</h3>
-                <p>
-                  {locationName ? `${locationName} · ` : ""}
-                  {geometrySummary}. Next, configure materials and envelope assemblies.
-                </p>
-                <button className="primary-button" onClick={() => onNavigate("Materials Library")}>
-                  Configure envelope materials
-                </button>
-              </>
-            ) : climateConfigured ? (
-              <>
-                <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
-                <h3>Location configured</h3>
-                <p>Your climate profile is ready. Next, configure shelter geometry dimensions.</p>
-                <button className="primary-button" onClick={() => onNavigate("Shelter Configuration")}>
-                  Configure geometry
-                </button>
-              </>
-            ) : geometryConfigured ? (
-              <>
-                <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
-                <h3>Geometry configured</h3>
-                <p>Shelter dimensions are set. Next, select a location to load climate data.</p>
-                <button className="primary-button" onClick={() => onNavigate("Location Climate")}>
-                  Select location climate
-                </button>
-              </>
-            ) : (
-              <>
-                <div className="empty-icon"><Box aria-hidden /></div>
-                <h3>No project configured</h3>
-                <p>Start by selecting a location climate to create your first thermal design.</p>
-                <button className="primary-button" onClick={() => onNavigate("Location Climate")}>
-                  Begin configuration
-                </button>
-              </>
-            )}
-          </div>
+          <ProjectStatus
+            climateConfigured={climateConfigured}
+            geometryConfigured={geometryConfigured}
+            materialsConfigured={materialsConfigured}
+            windowsConfigured={windowsConfigured}
+            stage5Configured={stage5Configured}
+            hvacConfigured={hvacConfigured}
+            hvacMode={hvacMode}
+            hvacSetpoint={hvacSetpoint}
+            ventsOpen={ventsOpen}
+            occupantsCount={occupantsCount}
+            windowArea={windowArea}
+            locationName={locationName}
+            geometrySummary={geometrySummary}
+            onNavigate={onNavigate}
+          />
         </div>
       </section>
     </>
   );
 }
 
-function WorkflowCard({
-  number,
-  icon,
-  title,
-  description,
-  configured = false,
-  onClick,
+function ProjectStatus({
+  climateConfigured,
+  geometryConfigured,
+  materialsConfigured,
+  windowsConfigured,
+  stage5Configured,
+  hvacConfigured,
+  hvacMode,
+  hvacSetpoint,
+  ventsOpen,
+  occupantsCount,
+  windowArea,
+  locationName,
+  geometrySummary,
+  onNavigate,
 }: {
-  number: string;
-  icon: ReactNode;
-  title: string;
-  description: string;
-  configured?: boolean;
-  onClick?: () => void;
+  climateConfigured: boolean;
+  geometryConfigured: boolean;
+  materialsConfigured: boolean;
+  windowsConfigured: boolean;
+  stage5Configured: boolean;
+  hvacConfigured: boolean;
+  hvacMode?: "floating" | "setpoint";
+  hvacSetpoint?: number | null;
+  ventsOpen?: boolean;
+  occupantsCount?: number | null;
+  windowArea?: number;
+  locationName?: string;
+  geometrySummary?: string;
+  onNavigate: (item: string) => void;
 }) {
   return (
-    <button
-      className={`workflow-card ${configured ? "workflow-card-configured" : ""}`}
-      onClick={onClick}
-    >
-      <div className="card-topline">
-        <span className="step-number">{number}</span>
-        <span className="card-icon">{icon}</span>
-      </div>
-      <h3>{title}</h3>
-      <p>{description}</p>
-      <span className="card-action">
-        {configured ? "Configured" : "Configure"} <span aria-hidden>→</span>
-      </span>
-    </button>
+    <div className="empty-project">
+      {climateConfigured && geometryConfigured && materialsConfigured && windowsConfigured && stage5Configured && hvacConfigured ? (
+        <>
+          <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
+          <h3>Complete Shelter Model Ready for Simulation</h3>
+          <p>
+            {locationName ? `${locationName} · ` : ""}
+            {geometrySummary} · {windowArea !== undefined ? windowArea.toFixed(1) : "0.0"} m² glazing ·{" "}
+            {ventsOpen ? "5.0 ACH Open" : "0.5 ACH Closed"} · {occupantsCount ?? 0} occupants ·{" "}
+            {hvacMode === "setpoint" ? `Setpoint ${hvacSetpoint?.toFixed(1)} °C` : "Floating Drift (0 W HVAC)"}
+          </p>
+          <button className="btn-square" onClick={() => onNavigate("Analysis")}>
+            Launch Thermal Simulation
+            <ArrowUpRight className="btn-arrow" aria-hidden />
+          </button>
+        </>
+      ) : climateConfigured && geometryConfigured && materialsConfigured && windowsConfigured && stage5Configured ? (
+        <>
+          <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
+          <h3>Shelter Envelope & Occupancy Configured</h3>
+          <p>
+            {locationName ? `${locationName} · ` : ""}
+            {geometrySummary}. Next, configure HVAC operational mode and temperature setpoint.
+          </p>
+          <button className="btn-square" onClick={() => onNavigate("HVAC & Thermal Control")}>
+            Configure HVAC & setpoint
+            <ArrowUpRight className="btn-arrow" aria-hidden />
+          </button>
+        </>
+      ) : climateConfigured && geometryConfigured && materialsConfigured && windowsConfigured ? (
+        <>
+          <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
+          <h3>Glazed Envelope Configured</h3>
+          <p>
+            {locationName ? `${locationName} · ` : ""}
+            {geometrySummary}. Next, configure ventilation state and occupant internal heat load.
+          </p>
+          <button className="btn-square" onClick={() => onNavigate("Ventilation & Occupants")}>
+            Configure ventilation & occupants
+            <ArrowUpRight className="btn-arrow" aria-hidden />
+          </button>
+        </>
+      ) : climateConfigured && geometryConfigured && materialsConfigured ? (
+        <>
+          <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
+          <h3>Envelope Materials Ready</h3>
+          <p>
+            {locationName ? `${locationName} · ` : ""}
+            {geometrySummary}. Next, configure windows and glazing aperture.
+          </p>
+          <button className="btn-square" onClick={() => onNavigate("Windows & Glazing")}>
+            Configure windows & glazing
+            <ArrowUpRight className="btn-arrow" aria-hidden />
+          </button>
+        </>
+      ) : climateConfigured && geometryConfigured ? (
+        <>
+          <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
+          <h3>Location & Geometry Configured</h3>
+          <p>
+            {locationName ? `${locationName} · ` : ""}
+            {geometrySummary}. Next, configure materials and envelope assemblies.
+          </p>
+          <button className="btn-square" onClick={() => onNavigate("Materials Library")}>
+            Configure envelope materials
+            <ArrowUpRight className="btn-arrow" aria-hidden />
+          </button>
+        </>
+      ) : climateConfigured ? (
+        <>
+          <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
+          <h3>Location configured</h3>
+          <p>Your climate profile is ready. Next, configure shelter geometry dimensions.</p>
+          <button className="btn-square" onClick={() => onNavigate("Shelter Configuration")}>
+            Configure geometry
+            <ArrowUpRight className="btn-arrow" aria-hidden />
+          </button>
+        </>
+      ) : geometryConfigured ? (
+        <>
+          <div className="empty-icon"><CheckCircle2 aria-hidden /></div>
+          <h3>Geometry configured</h3>
+          <p>Shelter dimensions are set. Next, select a location to load climate data.</p>
+          <button className="btn-square" onClick={() => onNavigate("Location Climate")}>
+            Select location climate
+            <ArrowUpRight className="btn-arrow" aria-hidden />
+          </button>
+        </>
+      ) : (
+        <>
+          <div className="empty-icon"><Box aria-hidden /></div>
+          <h3>No project configured</h3>
+          <p>Start by selecting a location climate to create your first thermal design.</p>
+          <button className="btn-square" onClick={() => onNavigate("Location Climate")}>
+            Begin configuration
+            <ArrowUpRight className="btn-arrow" aria-hidden />
+          </button>
+        </>
+      )}
+    </div>
   );
 }
