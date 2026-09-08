@@ -32,13 +32,6 @@ import { SystemStatus } from "@/components/SystemStatus";
 const HERO_IMAGE =
   "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2400&q=85";
 
-const centerLinks = [
-  { label: "Dashboard", item: "Dashboard" },
-  { label: "Location Climate", item: "Location Climate" },
-  { label: "Analysis", item: "Analysis" },
-  { label: "Reports", item: "Reports" },
-] as const;
-
 const pipeline = [
   { label: "Overview", item: "Dashboard" },
   { label: "Location", item: "Location Climate" },
@@ -62,6 +55,8 @@ const mobileNav = [
   { label: "Analysis", icon: Activity },
   { label: "Reports", icon: ClipboardList },
 ];
+
+const sidebarNav = mobileNav.filter(({ label }) => label !== "Dashboard");
 
 export default function Home() {
   const [activeItem, setActiveItem] = useState("Dashboard");
@@ -241,13 +236,15 @@ function AppHeader({
           </span>
         </button>
         <nav className="nav-center" aria-label="Primary navigation">
-          {centerLinks.map(({ label, item }) => (
+          <span className="sidebar-nav-label">Workspace</span>
+          {sidebarNav.map(({ label, icon: Icon }) => (
             <button
-              key={item}
-              className={activeItem === item ? "nav-link-active" : undefined}
-              onClick={() => onNavigate(item)}
-              aria-current={activeItem === item ? "page" : undefined}
+              key={label}
+              className={activeItem === label ? "nav-link-active" : undefined}
+              onClick={() => onNavigate(label)}
+              aria-current={activeItem === label ? "page" : undefined}
             >
+              <Icon aria-hidden />
               {label}
             </button>
           ))}

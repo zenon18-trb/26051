@@ -1478,3 +1478,25 @@ select:focus-visible {
 .configured-pill,.preset-card p,.preset-card .preset-description,.geometry-preset-btn span,.orientation-subnote,.orientation-disclaimer,.preview-caption,.field-hint,.climate-heading + *,.climate-panel label,.geometry-field label,.geometry-presets-title,.orientation-label,.add-layer-title,.cross-section-title,.layer-thickness-label,.assembly-target-btn span,.material-notes,.material-props-row,.glazing-kind-card p,.preflight-content span,.kpi-label,.kpi-sub,.meta-item span { color: #657268; }
 .primary-button,.secondary-button,.climate-submit,.launcher-btn,.rec-apply-btn,.fix-eval-btn,.add-layer-btn { background: #27382d !important; color: #fffaf0 !important; border-radius: 999px !important; }
 .footer { border-color: var(--ring); color: #697368; }
+
+/* Desktop navigation lives in the same calm, structural plane as the workspace. */
+@media (min-width: 851px) {
+  .app-header, .app-header.app-header-overlay, .app-header.app-header-solid { position: fixed; inset: 0 auto 0 0; z-index: 50; width: 248px; padding: 0; background: #e9e4d7; border: 0; border-right: 1px solid rgba(37, 49, 40, .14); backdrop-filter: none; }
+  .app-header-inner, .app-header-solid .app-header-inner { display: flex; width: 100%; height: 100%; max-width: none; margin: 0; padding: 30px 18px 20px; flex-direction: column; align-items: stretch; gap: 0; }
+  .brand-lockup { width: 100%; padding: 0 10px 25px; border-bottom: 1px solid rgba(37, 49, 40, .12); }
+  .brand-geo { width: 25px; height: 25px; }
+  .nav-center { display: flex; margin-top: 26px; flex-direction: column; align-items: stretch; gap: 3px; }
+  .sidebar-nav-label { padding: 0 10px 8px; color: #7a8479; font: 600 9px var(--font-mono), monospace; letter-spacing: .14em; text-transform: uppercase; }
+  .nav-center button, .app-header-solid .nav-center button { display: flex; width: 100%; align-items: center; gap: 11px; padding: 10px; border-radius: 7px; color: #526056; font-size: 12px; text-align: left; transition: background .18s ease, color .18s ease; }
+  .nav-center button svg { width: 16px; height: 16px; stroke-width: 1.6; }
+  .nav-center button:hover { background: rgba(39, 56, 45, .07); color: #253128; }
+  .nav-center button.nav-link-active { background: #27382d; color: #fffaf0; }
+  .nav-right { width: 100%; margin-top: auto; padding: 18px 0 0; border-top: 1px solid rgba(37, 49, 40, .12); }
+  .btn-square-nav { width: 100%; justify-content: space-between; padding: 12px 13px; }
+  .stage-strip { display: none; }
+  .main-area { min-height: 100vh; margin-left: 248px; }
+  .hero-section { width: calc(100% - 248px); margin-left: 248px; }
+  .content-area { width: min(1320px, 100%); }
+  .app-shell-landing .main-area { margin-left: 0; }
+  .app-shell-landing .hero-section { width: 100%; margin-left: 0; }
+}
