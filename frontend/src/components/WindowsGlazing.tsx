@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
+import { useReducedMotion } from "framer-motion";
 import {
   AlertTriangle,
   AppWindow,
@@ -19,6 +20,7 @@ import {
   type WindowConfig,
 } from "@/lib/api";
 import { useShelterConfiguration } from "@/context/ShelterConfigurationContext";
+import { ThreeGlazingPreview } from "@/components/ThreeGlazingPreview";
 
 type WindowPreset = {
   id: string;
@@ -80,6 +82,7 @@ export function WindowsGlazing() {
   const [savedSuccess, setSavedSuccess] = useState<boolean>(Boolean(windows));
 
   const areaId = useId();
+  const reduceMotion = useReducedMotion();
 
   // Parse and calculate geometry references
   const parsedArea = parseFloat(areaStr);
@@ -285,16 +288,17 @@ export function WindowsGlazing() {
             <div className="geometry-preview-container">
               {/* Isometric Architectural Preview with Window Glazing */}
               <div className="isometric-viewport">
-                <IsometricWindowShelterSvg
+                <ThreeGlazingPreview
                   length={geometry?.length_m ?? 6.0}
                   width={geometry?.width_m ?? 4.0}
                   height={geometry?.height_m ?? 2.8}
                   orientation={geometry?.orientation ?? "North"}
                   windowArea={parsedArea}
                   kind={kind}
+                  reduceMotion={Boolean(reduceMotion)}
                 />
                 <span className="preview-caption">
-                  Design visualization only · Aggregate window area represented on primary façade
+                  WebGL façade preview · Aggregate window area represented on primary façade
                 </span>
               </div>
 
@@ -362,7 +366,7 @@ export function WindowsGlazing() {
 /**
  * Lightweight SVG rendering an isometric rectangular shelter model with window glazing aperture.
  */
-function IsometricWindowShelterSvg({
+export function IsometricWindowShelterSvg({
   length,
   width,
   height,
