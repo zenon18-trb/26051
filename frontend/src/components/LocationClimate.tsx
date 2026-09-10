@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, ChevronRight, CloudSun, Database, LoaderCircle, MapPin, Navigation, Satellite } from "lucide-react";
 import { fetchClimate, fetchLocations, type ClimateResponse, type LocationPreset } from "@/lib/api";
 import { useShelterConfiguration } from "@/context/ShelterConfigurationContext";
@@ -17,6 +17,7 @@ export function LocationClimate() {
   const [loadingLocations, setLoadingLocations] = useState(true);
   const [loadingClimate, setLoadingClimate] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const mapFrameRef = useRef<HTMLIFrameElement>(null);
 
   const loadLocations = useCallback(async () => {
     setLoadingLocations(true);
@@ -34,6 +35,20 @@ export function LocationClimate() {
     const timer = window.setTimeout(() => { void loadLocations(); }, 0);
     return () => window.clearTimeout(timer);
   }, [loadLocations]);
+
+  useEffect(() => {
+    function receiveMapCoordinates(event: MessageEvent<unknown>) {
+      if (event.source !== mapFrameRef.current?.contentWindow || !event.data || typeof event.data !== "object") return;
+      const { type, lat, lng } = event.data as { type?: unknown; lat?: unknown; lng?: unknown };
+      if (type !== "map-click" || typeof lat !== "number" || typeof lng !== "number" || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
+      setLatitude(lat.toFixed(6));
+      setLongitude(lng.toFixed(6));
+      setMode("custom");
+      setError(null);
+    }
+    window.addEventListener("message", receiveMapCoordinates);
+    return () => window.removeEventListener("message", receiveMapCoordinates);
+  }, []);
 
   const selectedPreset = locations.find((preset) => preset.id === selectedPresetId) ?? null;
   const temperatureRange = useMemo(() => {
@@ -86,7 +101,7 @@ export function LocationClimate() {
     <div className="climate-layout">
       <section className="climate-panel selection-panel"><div className="panel-heading"><div><h2>Choose a location</h2><p>Preset coordinates are supplied by the climate service.</p></div><MapPin aria-hidden /></div>
         <div className="mode-toggle" role="tablist" aria-label="Location input mode"><button className={mode === "preset" ? "mode-active" : ""} onClick={() => setMode("preset")} role="tab" aria-selected={mode === "preset"}>Preset locations</button><button className={mode === "custom" ? "mode-active" : ""} onClick={() => setMode("custom")} role="tab" aria-selected={mode === "custom"}>Custom coordinates</button></div>
-        {mode === "preset" ? <div className="preset-list">{loadingLocations ? <div className="inline-loading"><LoaderCircle className="spin" aria-hidden /> Loading preset locations...</div> : locations.map((preset) => <button key={preset.id} className={`preset-card ${selectedPresetId === preset.id ? "preset-selected" : ""}`} onClick={() => { setSelectedPresetId(preset.id); setError(null); }}><div className="preset-card-top"><span className="preset-name">{preset.name}</span><span className="preset-type">{preset.environment_type}</span></div><p>{preset.region}</p><p className="preset-description">{preset.description}</p><span className="preset-coordinates">{preset.latitude.toFixed(4)}°, {preset.longitude.toFixed(4)}° <ChevronRight aria-hidden /></span></button>)}</div> : <div className="coordinate-fields"><label>Latitude<input inputMode="decimal" value={latitude} onChange={(event) => setLatitude(event.target.value)} placeholder="e.g. 34.1526" aria-describedby="latitude-help" /><small id="latitude-help">Range: -90 to +90°</small></label><label>Longitude<input inputMode="decimal" value={longitude} onChange={(event) => setLongitude(event.target.value)} placeholder="e.g. 77.5771" aria-describedby="longitude-help" /><small id="longitude-help">Range: -180 to +180°</small></label><div className="custom-note"><Navigation aria-hidden /> Custom coordinates are sent directly to the climate service without a preset identifier.</div></div>}
+        {mode === "preset" ? <div className="preset-list">{loadingLocations ? <div className="inline-loading"><LoaderCircle className="spin" aria-hidden /> Loading preset locations...</div> : locations.map((preset) => <button key={preset.id} className={`preset-card ${selectedPresetId === preset.id ? "preset-selected" : ""}`} onClick={() => { setSelectedPresetId(preset.id); setError(null); }}><div className="preset-card-top"><span className="preset-name">{preset.name}</span><span className="preset-type">{preset.environment_type}</span></div><p>{preset.region}</p><p className="preset-description">{preset.description}</p><span className="preset-coordinates">{preset.latitude.toFixed(4)}°, {preset.longitude.toFixed(4)}° <ChevronRight aria-hidden /></span></button>)}</div> : <div className="custom-location-input"><div className="map-picker"><div className="map-picker-header"><strong>Pick coordinates on the map</strong><span>Click to drop or move the pin</span></div><iframe ref={mapFrameRef} className="coordinate-map" src="/click-map.html" title="Interactive map coordinate picker" /></div><div className="coordinate-fields"><label>Latitude<input inputMode="decimal" value={latitude} onChange={(event) => setLatitude(event.target.value)} placeholder="e.g. 34.1526" aria-describedby="latitude-help" /><small id="latitude-help">Range: -90 to +90°</small></label><label>Longitude<input inputMode="decimal" value={longitude} onChange={(event) => setLongitude(event.target.value)} placeholder="e.g. 77.5771" aria-describedby="longitude-help" /><small id="longitude-help">Range: -180 to +180°</small></label><div className="custom-note"><Navigation aria-hidden /> Map selections populate these fields automatically. You can also enter coordinates manually; values are sent directly to the climate service.</div></div></div>}
         <button className="primary-button climate-submit" onClick={() => void retrieveClimate()} disabled={loadingClimate || loadingLocations}>{loadingClimate ? <><LoaderCircle className="spin" aria-hidden /> Retrieving climate...</> : <><CloudSun aria-hidden /> Retrieve climate data</>}</button>
       </section>
 

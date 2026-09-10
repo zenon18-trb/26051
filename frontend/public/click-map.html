@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Click Map — Get Coordinates</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body, #app { height: 100%; margin: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8f5ed; color: #253128; }
+  #app { display: flex; flex-direction: column; }
+  #map { flex: 1; cursor: crosshair; }
+  #panel { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; background: #f8f5ed; border-top: 1px solid rgba(23, 33, 28, .15); font-size: 11px; }
+  #coords { font-family: "SF Mono", Menlo, Consolas, monospace; color: #357096; }
+  #coords .label, #hint { color: #657268; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  #coords .label { margin-right: 6px; }
+  #hint { font-size: 10px; text-align: right; }
+  button { border: 0; border-radius: 4px; padding: 5px 8px; background: #27382d; color: #fffaf0; font-size: 10px; cursor: pointer; }
+  .leaflet-container { background: #e9e4d7; }
+</style>
+</head>
+<body>
+<div id="app"><div id="map"></div><div id="panel"><div id="coords"><span class="label">Clicked point</span><span id="coord-value">—</span></div><button id="copy-btn" style="display:none">Copy</button><div id="hint">Click anywhere on the map to drop a pin</div></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+  const map = L.map('map', { zoomControl: true }).setView([20, 0], 2);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+  let marker = null;
+  const coordValue = document.getElementById('coord-value');
+  const copyBtn = document.getElementById('copy-btn');
+  const hint = document.getElementById('hint');
+  map.on('click', (event) => {
+    const { lat, lng } = event.latlng;
+    if (marker) marker.setLatLng(event.latlng); else marker = L.marker(event.latlng).addTo(map);
+    coordValue.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    copyBtn.style.display = 'inline-block';
+    hint.textContent = 'Click again to move the pin';
+    window.parent.postMessage({ type: 'map-click', lat, lng }, window.location.origin);
+  });
+  copyBtn.addEventListener('click', () => navigator.clipboard.writeText(coordValue.textContent).then(() => {
+    copyBtn.textContent = 'Copied!'; setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1200);
+  }));
+</script>
+</body>
+</html>

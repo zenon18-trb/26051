@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   AlertTriangle,
   Box,
@@ -65,6 +66,14 @@ const ORIENTATIONS: { value: CardinalOrientation; label: string }[] = [
   { value: "West", label: "West (270°)" },
 ];
 
+// A subtle viewing-angle shift reinforces orientation without turning labels upside down.
+const ORIENTATION_VIEW_ANGLE: Record<CardinalOrientation, number> = {
+  North: 0,
+  East: 16,
+  South: 0,
+  West: -16,
+};
+
 export function ShelterConfiguration() {
   const { geometry, setGeometry } = useShelterConfiguration();
 
@@ -123,6 +132,8 @@ export function ShelterConfiguration() {
     isFormValid && grossWallArea !== null && roofArea !== null
       ? grossWallArea + roofArea
       : null;
+
+  const reduceMotion = useReducedMotion();
 
 
   function handleApplyPreset(preset: StandardPreset) {
@@ -359,14 +370,33 @@ export function ShelterConfiguration() {
             <div className="geometry-preview-container">
               {/* Isometric Architectural Illustration */}
               <div className="isometric-viewport">
-                <IsometricShelterSvg
-                  length={parsedLength}
-                  width={parsedWidth}
-                  height={parsedHeight}
-                  orientation={orientation}
-                />
+                <div className="shelter-model-stage">
+                  <motion.div
+                    key={`${parsedLength}-${parsedWidth}-${parsedHeight}`}
+                    className="shelter-model"
+                    initial={reduceMotion ? false : { opacity: 0, scale: 0.82, y: 18, rotateX: -24, rotateY: -32 }}
+                    animate={{
+                      opacity: 1,
+                      scale: 1,
+                      y: 0,
+                      rotateX: 0,
+                      rotateY: reduceMotion ? 0 : ORIENTATION_VIEW_ANGLE[orientation],
+                    }}
+                    whileHover={reduceMotion ? undefined : { scale: 1.085, y: -8, rotateX: 12, rotateY: ORIENTATION_VIEW_ANGLE[orientation] + 20 }}
+                    whileTap={reduceMotion ? undefined : { scale: 1.04, y: -3, rotateX: 7, rotateY: ORIENTATION_VIEW_ANGLE[orientation] + 14 }}
+                    transition={{ type: "spring", stiffness: 95, damping: 14, mass: 0.9 }}
+                    aria-label="Interactive 3D shelter preview. Hover to inspect the model."
+                  >
+                    <IsometricShelterSvg
+                      length={parsedLength}
+                      width={parsedWidth}
+                      height={parsedHeight}
+                      orientation={orientation}
+                    />
+                  </motion.div>
+                </div>
                 <span className="preview-caption">
-                  Design visualization only · Rectangular single-zone envelope
+                  Interactive 3D design visualization · Rectangular single-zone envelope
                 </span>
               </div>
 
