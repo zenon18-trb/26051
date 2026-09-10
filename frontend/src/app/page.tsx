@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useRef, useState } from "react";
+import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import { LocationClimate } from "@/components/LocationClimate";
 import { ShelterConfiguration } from "@/components/ShelterConfiguration";
 import { MaterialsLibrary } from "@/components/MaterialsLibrary";
@@ -14,6 +15,7 @@ import {
   Activity,
   AppWindow,
   ArrowUpRight,
+  ArrowDown,
   Box,
   ClipboardList,
   CloudSun,
@@ -30,7 +32,22 @@ import {
 import { SystemStatus } from "@/components/SystemStatus";
 
 const HERO_IMAGE =
-  "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2400&q=85";
+  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=2400&q=88";
+
+const overviewImages = [
+  {
+    src: "https://images.unsplash.com/photo-1454496522488-7a8e488e8606?auto=format&fit=crop&w=1200&q=82",
+    alt: "Snow-covered Himalayan ridgeline under a clear sky",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=82",
+    alt: "Small shelter set within an alpine landscape",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1200&q=82",
+    alt: "Mountain lake reflecting the surrounding terrain",
+  },
+] as const;
 
 const pipeline = [
   { label: "Overview", item: "Dashboard" },
@@ -68,6 +85,13 @@ const landingNav = [
 export default function Home() {
   const [activeItem, setActiveItem] = useState("Dashboard");
   const [menuOpen, setMenuOpen] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
+  const { scrollY } = useScroll();
+  const heroImageY = useTransform(scrollY, [0, 900], [0, -82]);
+  const heroImageScale = useTransform(scrollY, [0, 900], [1.01, 1.14]);
+  const heroContentY = useTransform(scrollY, [0, 650], [0, -104]);
+  const heroContentOpacity = useTransform(scrollY, [0, 580], [1, 0]);
+  const terrainY = useTransform(scrollY, [0, 900], [0, -148]);
   const {
     climate,
     geometry,
@@ -97,9 +121,20 @@ export default function Home() {
     <div className={`app-shell ${isDashboard ? "app-shell-landing" : ""}`}>
       {isDashboard ? (
         <section className="hero-section">
-          <img className="hero-image" src={HERO_IMAGE} alt="" />
+          <motion.img
+            className="hero-image"
+            src={HERO_IMAGE}
+            alt=""
+            style={shouldReduceMotion ? undefined : { y: heroImageY, scale: heroImageScale }}
+          />
           <div className="hero-scrim" />
           <div className="hero-glow" />
+          <motion.div className="hero-atmosphere" aria-hidden style={shouldReduceMotion ? undefined : { y: terrainY }}>
+            <span className="hero-grid" />
+            <span className="hero-orbit hero-orbit-one" />
+            <span className="hero-orbit hero-orbit-two" />
+            <ThermalCore className="thermal-core-hero" />
+          </motion.div>
           <AppHeader
             overlay
             activeItem={activeItem}
@@ -107,7 +142,10 @@ export default function Home() {
             onToggleMenu={() => setMenuOpen((open) => !open)}
             onNavigate={goTo}
           />
-          <div className="hero-content">
+          <motion.div
+            className="hero-content"
+            style={shouldReduceMotion ? undefined : { y: heroContentY, opacity: heroContentOpacity }}
+          >
             <div className="hero-kicker-row">
               <p className="eyebrow hero-eyebrow">SIH26051 · THERMAL ANALYSIS WORKSPACE</p>
               <span className="terrain-status"><span /> FIELD READY</span>
@@ -127,11 +165,19 @@ export default function Home() {
               <span>ORIENTATION / NORTH</span>
               <span>MODEL / FIRST-ORDER</span>
             </div>
-          </div>
-          <div className="terrain-lines" aria-hidden>
+          </motion.div>
+          <motion.div className="terrain-lines" aria-hidden style={shouldReduceMotion ? undefined : { y: terrainY }}>
             <i /><i /><i /><i /><i />
-          </div>
+          </motion.div>
           <p className="hero-index" aria-hidden>01 — START AT THE EDGE</p>
+          <button
+            type="button"
+            className="scroll-cue"
+            onClick={() => document.getElementById("overview-brief")?.scrollIntoView({ behavior: "smooth" })}
+          >
+            <span>Explore the conditions</span>
+            <ArrowDown aria-hidden />
+          </button>
         </section>
       ) : (
         <AppHeader
@@ -173,30 +219,34 @@ export default function Home() {
             <SimulationResults onNavigateToSimulation={() => goTo("Analysis")} />
           )}
           {isDashboard && (
-            <DashboardHome
-              climateConfigured={Boolean(climate)}
-              geometryConfigured={Boolean(geometry)}
-              materialsConfigured={isMaterialsConfigured}
-              windowsConfigured={isWindowsConfigured}
-              ventilationConfigured={isVentilationConfigured}
-              occupantsConfigured={isOccupantsConfigured}
-              stage5Configured={isVentilationAndOccupantsConfigured}
-              hvacConfigured={isHvacConfigured}
-              hvacMode={hvac?.mode}
-              hvacSetpoint={hvac?.setpoint_c}
-              ventsOpen={vents?.open}
-              occupantsCount={occupants}
-              windowArea={windows?.area_m2}
-              locationName={location?.preset?.name}
-              wallLayersCount={wallLayers.length}
-              roofLayersCount={roofLayers.length}
-              geometrySummary={
-                geometry
-                  ? `${geometry.length_m}m × ${geometry.width_m}m × ${geometry.height_m}m (${geometry.orientation ?? "North"})`
-                  : undefined
-              }
-              onNavigate={(item) => goTo(item)}
-            />
+            <>
+              <FieldConditions />
+              <OverviewBrief />
+              <DashboardHome
+                climateConfigured={Boolean(climate)}
+                geometryConfigured={Boolean(geometry)}
+                materialsConfigured={isMaterialsConfigured}
+                windowsConfigured={isWindowsConfigured}
+                ventilationConfigured={isVentilationConfigured}
+                occupantsConfigured={isOccupantsConfigured}
+                stage5Configured={isVentilationAndOccupantsConfigured}
+                hvacConfigured={isHvacConfigured}
+                hvacMode={hvac?.mode}
+                hvacSetpoint={hvac?.setpoint_c}
+                ventsOpen={vents?.open}
+                occupantsCount={occupants}
+                windowArea={windows?.area_m2}
+                locationName={location?.preset?.name}
+                wallLayersCount={wallLayers.length}
+                roofLayersCount={roofLayers.length}
+                geometrySummary={
+                  geometry
+                    ? `${geometry.length_m}m × ${geometry.width_m}m × ${geometry.height_m}m (${geometry.orientation ?? "North"})`
+                    : undefined
+                }
+                onNavigate={(item) => goTo(item)}
+              />
+            </>
           )}
         </main>
         <footer className="footer">
@@ -205,6 +255,165 @@ export default function Home() {
         </footer>
       </div>
     </div>
+  );
+}
+
+const fieldConditions = [
+  {
+    label: "01 / AIR",
+    title: "The climate sets the first constraint.",
+    copy: "A shelter does not encounter an average day. It encounters an hour-by-hour sequence of cold, sun, wind and recovery.",
+    value: "−06°",
+    unit: "OUTDOOR LOW",
+    image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1800&q=85",
+    alt: "Snowy high-altitude mountain range at dusk",
+  },
+  {
+    label: "02 / SUN",
+    title: "Solar gain can turn a wall into a thermal battery.",
+    copy: "Orientation, glazing and material layers determine how much of the day’s energy reaches the occupied space.",
+    value: "790",
+    unit: "W/M² PEAK SOLAR",
+    image: "https://images.unsplash.com/photo-1464278533981-50106e6176b1?auto=format&fit=crop&w=1800&q=85",
+    alt: "Low sun crossing a rugged mountain ridge",
+  },
+  {
+    label: "03 / SHELTER",
+    title: "A first-order model makes the next decision clearer.",
+    copy: "Test the envelope before committing to a detailed study, a procurement choice or a site-ready prototype.",
+    value: "24H",
+    unit: "THERMAL RESPONSE",
+    image: "https://images.unsplash.com/photo-1483347756197-71ef80e95f73?auto=format&fit=crop&w=1800&q=85",
+    alt: "Compact shelter in a remote alpine valley",
+  },
+] as const;
+
+function FieldConditions() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const shouldReduceMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"] });
+  const progress = useSpring(scrollYProgress, { stiffness: 95, damping: 28, restDelta: 0.001 });
+  const x = useTransform(progress, [0, 1], ["0%", "-66.666%"]);
+  const imageScale = useTransform(progress, [0, 1], [1.03, 1.14]);
+
+  return (
+    <section className="field-sequence" ref={sectionRef} aria-label="Field conditions">
+      <div className="field-sequence-sticky">
+        <div className="field-sequence-head">
+          <p className="eyebrow">THE CONDITIONS MOVE FIRST</p>
+          <span>SCROLL TO FOLLOW / 03</span>
+        </div>
+        <motion.div className="field-progress" style={{ scaleX: shouldReduceMotion ? 0 : progress }} aria-hidden />
+        <motion.div className="field-sequence-track" style={{ x: shouldReduceMotion ? 0 : x }}>
+          {fieldConditions.map((condition, index) => (
+            <article className="field-panel" key={condition.label}>
+              <motion.img
+                className="field-panel-image"
+                src={condition.image}
+                alt={condition.alt}
+                style={shouldReduceMotion ? undefined : { scale: imageScale }}
+              />
+              <div className="field-panel-scrim" />
+              <div className="field-panel-content">
+                <span className="field-panel-index">{condition.label}</span>
+                <div className="field-panel-stat">
+                  <strong>{condition.value}</strong>
+                  <span>{condition.unit}</span>
+                </div>
+                <div className="field-panel-copy">
+                  <h2>{condition.title}</h2>
+                  <p>{condition.copy}</p>
+                </div>
+              </div>
+              <span className="field-panel-page" aria-hidden>0{index + 1}</span>
+            </article>
+          ))}
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+function OverviewBrief() {
+  return (
+    <section className="overview-brief" id="overview-brief" aria-labelledby="overview-brief-title">
+      <div className="overview-brief-intro">
+        <p className="eyebrow">A FIELD DECISION, NOT A FEATURE TOUR</p>
+        <h2 id="overview-brief-title">Every shelter begins with the environment it has to answer to.</h2>
+      </div>
+      <div className="overview-path" aria-label="Engineering decision journey">
+        {[
+          ["01 / READ", "Start with terrain.", "Climate, altitude, solar exposure and wind establish the conditions before a wall is drawn."],
+          ["02 / TEST", "Make the trade-offs visible.", "Build a credible envelope, then trace how the choices alter a 24-hour thermal response."],
+          ["03 / DECIDE", "Leave with an informed next move.", "Use a first-order estimate to focus detailed modelling and physical testing where they matter most."],
+        ].map(([label, title, copy], index) => (
+          <motion.article
+            key={label}
+            className={`overview-step ${index === 2 ? "overview-step-decision" : ""}`}
+            initial={{ opacity: 0, y: 28 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.25 }}
+            transition={{ duration: 0.55, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <span>{label}</span>
+            <div className="overview-story-image">
+              {index === 2 ? (
+                <DecisionVisual image={overviewImages[index]} />
+              ) : (
+                <img src={overviewImages[index].src} alt={overviewImages[index].alt} />
+              )}
+            </div>
+            <h3>{title}</h3>
+            <p>{copy}</p>
+          </motion.article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function DecisionVisual({ image }: { image: (typeof overviewImages)[number] }) {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <>
+      <img src={image.src} alt={image.alt} />
+      <div className="decision-visual-scrim" aria-hidden />
+      <div className="decision-visual-meta" aria-hidden>
+        <span>THERMAL WINDOW</span>
+        <strong>18:00 — 06:00</strong>
+      </div>
+      <svg className="decision-trace" viewBox="0 0 260 74" preserveAspectRatio="none" aria-hidden>
+        <path className="decision-trace-guide" d="M0 57 H260" />
+        <motion.path
+          d="M0 58 C28 56 35 39 56 43 S91 63 114 46 S149 13 174 28 S211 48 260 16"
+          className="decision-trace-line"
+          initial={{ pathLength: 0, opacity: 0 }}
+          whileInView={{ pathLength: 1, opacity: 1 }}
+          viewport={{ once: true, amount: 0.5 }}
+          transition={{ duration: shouldReduceMotion ? 0 : 1.45, ease: "easeInOut", delay: 0.25 }}
+        />
+        <motion.circle
+          cx="174"
+          cy="28"
+          r="4"
+          className="decision-trace-node"
+          initial={{ scale: 0, opacity: 0 }}
+          whileInView={{ scale: 1, opacity: 1 }}
+          viewport={{ once: true, amount: 0.5 }}
+          transition={{ duration: shouldReduceMotion ? 0 : 0.35, delay: 1.35 }}
+        />
+      </svg>
+      <motion.span
+        className="decision-visual-status"
+        initial={{ opacity: 0, y: 8 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.5 }}
+        transition={{ duration: shouldReduceMotion ? 0 : 0.45, delay: 1.15 }}
+      >
+        <i /> RESPONSE VISIBLE
+      </motion.span>
+    </>
   );
 }
 
@@ -302,21 +511,6 @@ function AppHeader({
         </div>
       )}
     </header>
-  );
-}
-
-function StatusChip({
-  tone,
-  children,
-}: {
-  tone: "pass" | "warn" | "fail";
-  children: ReactNode;
-}) {
-  return (
-    <span className={`v-chip v-chip-${tone}`}>
-      <span className="v-chip-dot" />
-      {children}
-    </span>
   );
 }
 
@@ -429,186 +623,13 @@ function DashboardHome({
 
   return (
     <>
-      <div className="notice">
-        <ShieldCheck aria-hidden />
-        <div>
-          <strong>First-order estimation tool</strong>
-          <p>
-            This workspace provides engineering estimates for early-stage design decisions. Results are not a
-            substitute for CFD, EnergyPlus, or certification models.
-          </p>
-        </div>
-      </div>
-
-      <section className="kpi-metrics-grid" aria-label="Workspace metrics">
-        <div className="kpi-cell">
-          <div className="kpi-figure">
-            <span className="kpi-number">{completedCount}</span>
-            <span className="kpi-unit">/6</span>
-          </div>
-          <p className="kpi-subline">Design workflow</p>
-        </div>
-        <div className="kpi-cell">
-          <div className="kpi-figure">
-            <span className="kpi-number">6</span>
-            <span className="kpi-unit">steps</span>
-          </div>
-          <p className="kpi-subline">Complete each step to prepare your thermal analysis.</p>
-        </div>
-        <div className="kpi-cell">
-          <div className="kpi-figure">
-            <span className="kpi-number">{completePct}</span>
-            <span className="kpi-unit">%</span>
-          </div>
-          <p className="kpi-subline">{completedCount} of 6 complete</p>
-        </div>
-        <div className="kpi-cell">
-          <div className="kpi-figure">
-            <span className="kpi-number">0.1</span>
-            <span className="kpi-unit">v</span>
-          </div>
-          <p className="kpi-subline">Prototype v0.1</p>
-        </div>
-      </section>
-
-      <section className="section-block">
-        <div className="section-heading">
-          <div>
-            <h2>Design workflow</h2>
-            <p>Complete each step to prepare your thermal analysis.</p>
-          </div>
-          <span className="progress-copy">{completedCount} of 6 complete</span>
-        </div>
-
-        <div className="bento-grid">
-          <article className="surface-card bento-card">
-            <header className="bento-card-head">
-              <h3>Design workflow</h3>
-              <StatusChip tone={completedCount === 6 ? "pass" : "fail"}>
-                {completedCount === 6 ? "PASS" : "FAIL"}
-              </StatusChip>
-            </header>
-            <ul className="status-rows">
-              {workflowRows.map((row) => (
-                <li key={row.id}>
-                  <button type="button" onClick={() => onNavigate(row.item)}>
-                    <span className="status-row-id">{row.id}</span>
-                    <span className="status-row-title">{row.title}</span>
-                    <StatusChip tone={row.configured ? "pass" : "fail"}>
-                      {row.configured ? "PASS" : "FAIL"}
-                    </StatusChip>
-                    <span className="status-row-delta">{row.configured ? "+100%" : "0%"}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </article>
-
-          <article className="surface-card bento-card">
-            <header className="bento-card-head">
-              <h3>Current project</h3>
-              <StatusChip tone={completedCount === 6 ? "pass" : "warn"}>
-                {completedCount === 6 ? "PASS" : "WARN"}
-              </StatusChip>
-            </header>
-            <div className="cluster-bars">
-              {workflowRows.map((row) => (
-                <div key={row.id} className="cluster-row">
-                  <div className="cluster-label">
-                    <span>{row.title}</span>
-                    <span className="data-muted">{row.configured ? "100%" : "0%"}</span>
-                  </div>
-                  <div className="cluster-track">
-                    <span
-                      className={`cluster-fill ${row.id === firstPending ? "cluster-fill-active" : ""}`}
-                      style={{ width: row.configured ? "100%" : "8%" }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </article>
-
-          <article className="surface-card bento-card">
-            <header className="bento-card-head">
-              <h3>First-order estimation tool</h3>
-              <StatusChip tone="warn">WARN</StatusChip>
-            </header>
-            <div className="diff-view" aria-label="Model assumptions">
-              <pre className="diff-line diff-add">+ First-order estimation tool</pre>
-              <pre className="diff-line diff-add">+ Engineering estimates for early-stage design decisions</pre>
-              <pre className="diff-line diff-mod">~ Results are not a substitute for CFD, EnergyPlus, or certification models.</pre>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section className="section-block">
-        <div className="surface-card event-stream">
-          <header className="event-stream-head">
-            <div>
-              <p className="eyebrow">Design workflow</p>
-              <h2>Complete each step to prepare your thermal analysis.</h2>
-            </div>
-            <div className="event-stream-chips">
-              <StatusChip tone="warn">SIH26051</StatusChip>
-              <StatusChip tone="pass">Prototype v0.1</StatusChip>
-            </div>
-          </header>
-          <div className="event-stream-body">
-            <aside className="event-sidebar">
-              {workflowRows.map((row) => (
-                <button
-                  key={row.id}
-                  className={`event-id-row ${row.id === firstPending ? "event-id-row-active" : ""}`}
-                  onClick={() => onNavigate(row.item)}
-                >
-                  <span className={`event-dot ${row.configured ? "event-dot-pass" : "event-dot-fail"}`} />
-                  <span>{row.id}</span>
-                </button>
-              ))}
-            </aside>
-            <div className="event-table-wrap">
-              <table className="event-table">
-                <thead>
-                  <tr>
-                    <th>SPAN</th>
-                    <th>START</th>
-                    <th>DURATION</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {workflowRows.map((row, index) => {
-                    const start = (index / workflowRows.length) * 100;
-                    const width = 100 / workflowRows.length;
-                    return (
-                      <tr
-                        key={row.id}
-                        className={row.id === firstPending ? "event-row-focus" : undefined}
-                        onClick={() => onNavigate(row.item)}
-                      >
-                        <td>
-                          <strong>{row.title}</strong>
-                          <span className="data-muted">{row.detail}</span>
-                        </td>
-                        <td>
-                          <div className="timeline">
-                            <span
-                              className={`timeline-bar ${row.id === firstPending ? "timeline-bar-active" : ""}`}
-                              style={{ left: `${start}%`, width: `${width}%` }}
-                            />
-                          </div>
-                        </td>
-                        <td>{row.configured ? "CONFIGURED" : "CONFIGURE"}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </section>
+      <ProjectReadiness
+        workflowRows={workflowRows}
+        completedCount={completedCount}
+        completePct={completePct}
+        firstPending={firstPending}
+        onNavigate={onNavigate}
+      />
 
       <section className="lower-grid">
         <div className="surface-card panel">
@@ -651,6 +672,116 @@ function DashboardHome({
         </div>
       </section>
     </>
+  );
+}
+
+type WorkflowRow = {
+  id: string;
+  title: string;
+  item: string;
+  configured: boolean;
+  detail: string;
+};
+
+function ProjectReadiness({
+  workflowRows,
+  completedCount,
+  completePct,
+  firstPending,
+  onNavigate,
+}: {
+  workflowRows: WorkflowRow[];
+  completedCount: number;
+  completePct: number;
+  firstPending: string;
+  onNavigate: (item: string) => void;
+}) {
+  const nextStep = workflowRows.find((row) => row.id === firstPending) ?? workflowRows[0];
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <section className="readiness-command" aria-labelledby="readiness-title">
+      <motion.div
+        className="readiness-brief"
+        initial={{ opacity: 0, y: 28 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: shouldReduceMotion ? 0 : 0.6, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <ThermalCore />
+        <div className="readiness-brief-copy">
+          <p className="eyebrow">PROJECT READINESS / SIH26051</p>
+          <h2 id="readiness-title">Define the system before you ask it a question.</h2>
+          <p>
+            Six inputs become one traceable thermal response. Start with the site, then move along the route at your own pace.
+          </p>
+          <button type="button" className="readiness-start" onClick={() => onNavigate(nextStep.item)}>
+            Continue with {nextStep.title}
+            <ArrowUpRight aria-hidden />
+          </button>
+        </div>
+        <div className="readiness-meter" aria-label={`${completedCount} of 6 stages configured`}>
+          <span>READINESS</span>
+          <strong>{completePct}<small>%</small></strong>
+          <div className="readiness-meter-track"><motion.i initial={{ scaleX: 0 }} whileInView={{ scaleX: completePct / 100 }} viewport={{ once: true }} transition={{ duration: shouldReduceMotion ? 0 : 0.9, delay: 0.25 }} /></div>
+          <p>{completedCount} / 6 inputs defined</p>
+        </div>
+      </motion.div>
+
+      <div className="readiness-route" aria-label="Configuration route">
+        {workflowRows.map((row, index) => (
+          <motion.button
+            type="button"
+            key={row.id}
+            className={`readiness-node ${row.configured ? "readiness-node-complete" : ""} ${row.id === firstPending ? "readiness-node-next" : ""}`}
+            onClick={() => onNavigate(row.item)}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.42, delay: index * 0.075 }}
+          >
+            <span className="readiness-node-marker">{row.configured ? "✓" : `0${index + 1}`}</span>
+            <span className="readiness-node-title">{row.title}</span>
+            <span className="readiness-node-detail">{row.configured ? row.detail : row.id === firstPending ? "Next input" : "Awaiting input"}</span>
+            {index < workflowRows.length - 1 && <i className="readiness-connector" aria-hidden />}
+          </motion.button>
+        ))}
+      </div>
+
+      <motion.aside
+        className="readiness-note"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: shouldReduceMotion ? 0 : 0.5, delay: 0.2 }}
+      >
+        <ShieldCheck aria-hidden />
+        <p><strong>First-order estimation tool.</strong> Use results to direct detailed modelling, physical testing and certification—not replace them.</p>
+      </motion.aside>
+    </section>
+  );
+}
+
+function ThermalCore({ className = "" }: { className?: string }) {
+  const shouldReduceMotion = useReducedMotion();
+  const loop = shouldReduceMotion ? undefined : { duration: 18, repeat: Infinity, ease: "linear" as const };
+
+  return (
+    <div className={`thermal-core-scene ${className}`} aria-hidden>
+      <motion.div
+        className="thermal-core-world"
+        animate={shouldReduceMotion ? undefined : { rotateY: [-18, 24, -18], rotateX: [10, -8, 10] }}
+        transition={shouldReduceMotion ? undefined : { duration: 9, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <motion.span className="thermal-ring thermal-ring-one" animate={shouldReduceMotion ? undefined : { rotateZ: 360 }} transition={loop} />
+        <motion.span className="thermal-ring thermal-ring-two" animate={shouldReduceMotion ? undefined : { rotateZ: -360 }} transition={{ ...loop, duration: 13 }} />
+        <motion.span className="thermal-ring thermal-ring-three" animate={shouldReduceMotion ? undefined : { rotateZ: 360 }} transition={{ ...loop, duration: 23 }} />
+        <motion.span className="thermal-core-dot" animate={shouldReduceMotion ? undefined : { z: [0, 24, 0], scale: [1, 1.12, 1] }} transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut" }} />
+        <motion.i className="thermal-particle thermal-particle-one" animate={shouldReduceMotion ? undefined : { rotateZ: 360 }} transition={{ ...loop, duration: 8 }} />
+        <motion.i className="thermal-particle thermal-particle-two" animate={shouldReduceMotion ? undefined : { rotateZ: -360 }} transition={{ ...loop, duration: 11 }} />
+      </motion.div>
+      {className && <><span className="thermal-core-tag thermal-core-tag-top">FIELD VECTOR / NNE</span><span className="thermal-core-tag thermal-core-tag-bottom">SIGNAL ACQUIRED</span></>}
+    </div>
   );
 }
 

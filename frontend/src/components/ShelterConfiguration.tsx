@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { CardinalOrientation, ShelterGeometry } from "@/lib/api";
 import { useShelterConfiguration } from "@/context/ShelterConfigurationContext";
+import { ThreeShelterPreview } from "@/components/ThreeShelterPreview";
 
 type StandardPreset = {
   id: string;
@@ -65,14 +66,6 @@ const ORIENTATIONS: { value: CardinalOrientation; label: string }[] = [
   { value: "South", label: "South (180°)" },
   { value: "West", label: "West (270°)" },
 ];
-
-// A subtle viewing-angle shift reinforces orientation without turning labels upside down.
-const ORIENTATION_VIEW_ANGLE: Record<CardinalOrientation, number> = {
-  North: 0,
-  East: 16,
-  South: 0,
-  West: -16,
-};
 
 export function ShelterConfiguration() {
   const { geometry, setGeometry } = useShelterConfiguration();
@@ -374,29 +367,27 @@ export function ShelterConfiguration() {
                   <motion.div
                     key={`${parsedLength}-${parsedWidth}-${parsedHeight}`}
                     className="shelter-model"
-                    initial={reduceMotion ? false : { opacity: 0, scale: 0.82, y: 18, rotateX: -24, rotateY: -32 }}
+                    initial={reduceMotion ? false : { opacity: 0, scale: 0.9, y: 18 }}
                     animate={{
                       opacity: 1,
                       scale: 1,
                       y: 0,
                       rotateX: 0,
-                      rotateY: reduceMotion ? 0 : ORIENTATION_VIEW_ANGLE[orientation],
+                      rotateY: 0,
                     }}
-                    whileHover={reduceMotion ? undefined : { scale: 1.085, y: -8, rotateX: 12, rotateY: ORIENTATION_VIEW_ANGLE[orientation] + 20 }}
-                    whileTap={reduceMotion ? undefined : { scale: 1.04, y: -3, rotateX: 7, rotateY: ORIENTATION_VIEW_ANGLE[orientation] + 14 }}
                     transition={{ type: "spring", stiffness: 95, damping: 14, mass: 0.9 }}
-                    aria-label="Interactive 3D shelter preview. Hover to inspect the model."
                   >
-                    <IsometricShelterSvg
+                    <ThreeShelterPreview
                       length={parsedLength}
                       width={parsedWidth}
                       height={parsedHeight}
                       orientation={orientation}
+                      reduceMotion={Boolean(reduceMotion)}
                     />
                   </motion.div>
                 </div>
                 <span className="preview-caption">
-                  Interactive 3D design visualization · Rectangular single-zone envelope
+                  WebGL architectural preview · Rectangular single-zone envelope
                 </span>
               </div>
 
@@ -462,7 +453,7 @@ export function ShelterConfiguration() {
 /**
  * Lightweight SVG rendering an isometric rectangular shelter model with dimension annotations.
  */
-function IsometricShelterSvg({
+export function IsometricShelterSvg({
   length,
   width,
   height,
@@ -473,6 +464,7 @@ function IsometricShelterSvg({
   height: number;
   orientation: CardinalOrientation;
 }) {
+  const reduceMotion = useReducedMotion();
   // Normalize aspect ratio for isometric rendering box (SVG viewBox: 0 0 400 240)
   const maxDim = Math.max(length, width, height, 1.0);
   const scale = 110 / maxDim;
@@ -548,23 +540,78 @@ function IsometricShelterSvg({
       </g>
 
       {/* Ground Shadow */}
-      <polygon
+      <motion.polygon
         points={`${p0.x},${p0.y + 4} ${p1.x + 8},${p1.y + 2} ${p2.x + 8},${p2.y - 2} ${p3.x - 8},${p3.y + 2}`}
         fill="#12314b"
-        opacity="0.05"
+        animate={reduceMotion ? undefined : { opacity: [0.05, 0.12, 0.05], scale: [1, 1.045, 1] }}
+        transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
       />
 
       {/* Side Wall (Left face) */}
-      <path d={sideWallPath} fill="url(#side-grad)" stroke="#6893ab" strokeWidth="1.5" strokeLinejoin="round" />
+      <motion.path
+        d={sideWallPath}
+        fill="url(#side-grad)"
+        stroke="#6893ab"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+        initial={reduceMotion ? false : { opacity: 0.2, pathLength: 0 }}
+        animate={{ opacity: 1, pathLength: 1 }}
+        transition={{ duration: reduceMotion ? 0 : 0.6, ease: "easeOut" }}
+      />
 
       {/* Front Wall (Right face) */}
-      <path d={frontWallPath} fill="url(#front-grad)" stroke="#6893ab" strokeWidth="1.5" strokeLinejoin="round" />
+      <motion.path
+        d={frontWallPath}
+        fill="url(#front-grad)"
+        stroke="#6893ab"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+        initial={reduceMotion ? false : { opacity: 0.2, pathLength: 0 }}
+        animate={{ opacity: 1, pathLength: 1 }}
+        transition={{ duration: reduceMotion ? 0 : 0.65, delay: reduceMotion ? 0 : 0.08, ease: "easeOut" }}
+      />
 
       {/* Roof (Top face) */}
-      <path d={roofPath} fill="url(#roof-grad)" stroke="#3f7c9e" strokeWidth="1.75" strokeLinejoin="round" />
+      <motion.path
+        d={roofPath}
+        fill="url(#roof-grad)"
+        stroke="#3f7c9e"
+        strokeWidth="1.75"
+        strokeLinejoin="round"
+        initial={reduceMotion ? false : { opacity: 0.2, pathLength: 0 }}
+        animate={{ opacity: 1, pathLength: 1 }}
+        transition={{ duration: reduceMotion ? 0 : 0.7, delay: reduceMotion ? 0 : 0.16, ease: "easeOut" }}
+      />
+
+      {/* A quiet scanning plane gives the model an inspectable, live-system quality. */}
+      <motion.path
+        d={roofPath}
+        className="shelter-roof-scan"
+        initial={{ opacity: 0 }}
+        animate={reduceMotion ? { opacity: 0.12 } : { opacity: [0.05, 0.28, 0.05] }}
+        transition={{ duration: 3.4, repeat: reduceMotion ? 0 : Infinity, ease: "easeInOut" }}
+      />
+      <motion.line
+        className="shelter-scan-line"
+        x1={t3.x}
+        y1={t3.y}
+        x2={t1.x}
+        y2={t1.y}
+        initial={reduceMotion ? false : { pathLength: 0, opacity: 0 }}
+        animate={reduceMotion ? { pathLength: 1, opacity: 0.3 } : { pathLength: [0, 1, 1, 0], opacity: [0, 0.8, 0.8, 0] }}
+        transition={{ duration: 3.4, repeat: reduceMotion ? 0 : Infinity, ease: "easeInOut" }}
+      />
 
       {/* Engineering wireframe inner dashed guideline */}
       <line x1={p0.x} y1={p0.y} x2={p2.x} y2={p2.y} stroke="#85a8bc" strokeWidth="0.8" strokeDasharray="3 3" opacity="0.6" />
+      <motion.circle
+        className="shelter-vector-node"
+        cx={t2.x}
+        cy={t2.y}
+        r="3"
+        animate={reduceMotion ? undefined : { scale: [1, 1.75, 1], opacity: [0.55, 1, 0.55] }}
+        transition={{ duration: 2.1, repeat: Infinity, ease: "easeInOut" }}
+      />
 
       {/* Dimension Labels and Ticks */}
       {/* Length Annotation along Front Wall */}
