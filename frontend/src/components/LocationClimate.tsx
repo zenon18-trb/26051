@@ -11,7 +11,7 @@ export function LocationClimate() {
   const { location, climate, setLocationClimate } = useShelterConfiguration();
   const [locations, setLocations] = useState<LocationPreset[]>([]);
   const [selectedPresetId, setSelectedPresetId] = useState(location?.preset?.id ?? "");
-  const [mode, setMode] = useState<Mode>(location?.preset ? "preset" : "preset");
+  const [mode, setMode] = useState<Mode>("custom");
   const [latitude, setLatitude] = useState(location ? String(location.lat) : "");
   const [longitude, setLongitude] = useState(location ? String(location.lon) : "");
   const [loadingLocations, setLoadingLocations] = useState(true);
