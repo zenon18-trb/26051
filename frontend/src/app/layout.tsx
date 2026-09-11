@@ -31,7 +31,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${interDisplay.variable} ${geistMono.variable} min-h-screen antialiased`}>
+      <body
+        className={`${interDisplay.variable} ${geistMono.variable} min-h-screen antialiased`}
+        suppressHydrationWarning
+      >
         <ShelterConfigurationProvider>{children}</ShelterConfigurationProvider>
       </body>
     </html>

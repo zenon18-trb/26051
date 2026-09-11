@@ -1659,6 +1659,21 @@ select:focus-visible {
   .app-header, .app-header.app-header-overlay, .app-header.app-header-solid { position: fixed; inset: 0 auto 0 0; z-index: 50; width: 248px; padding: 0; background: #e9e4d7; border: 0; border-right: 1px solid rgba(37, 49, 40, .14); backdrop-filter: none; }
   .app-header-inner, .app-header-solid .app-header-inner { display: flex; width: 100%; height: 100%; max-width: none; margin: 0; padding: 30px 18px 20px; flex-direction: column; align-items: stretch; gap: 0; }
   .brand-lockup { width: 100%; padding: 0 10px 25px; border-bottom: 1px solid rgba(37, 49, 40, .12); }
+  .app-shell:not(.app-shell-landing) .brand-lockup {
+    position: relative;
+    width: calc(100% + 12px);
+    margin: -10px 0 10px -10px;
+    padding: 12px 14px 17px 20px;
+    border: 1px solid rgba(37, 49, 40, .16);
+    background: #fffdf5;
+    box-shadow: 5px 5px 0 rgba(217, 92, 49, .52);
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .app-shell:not(.app-shell-landing) .brand-lockup .brand-geo { color: #253128; }
+  .app-shell:not(.app-shell-landing) .brand-lockup:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 7px 7px 0 rgba(217, 92, 49, .62);
+  }
   .brand-geo { width: 25px; height: 25px; }
   .nav-center { display: flex; margin-top: 26px; flex-direction: column; align-items: stretch; gap: 3px; }
   .sidebar-nav-label { padding: 0 10px 8px; color: #7a8479; font: 600 9px var(--font-mono), monospace; letter-spacing: .14em; text-transform: uppercase; }
