@@ -105,7 +105,7 @@ export function LocationClimate() {
         <button className="primary-button climate-submit" onClick={() => void retrieveClimate()} disabled={loadingClimate || loadingLocations}>{loadingClimate ? <><LoaderCircle className="spin" aria-hidden /> Retrieving climate...</> : <><CloudSun aria-hidden /> Retrieve climate data</>}</button>
       </section>
 
-      <section className="climate-panel summary-panel"><div className="panel-heading"><div><h2>Climate summary</h2><p>{climate ? `${climate.lat.toFixed(4)}°, ${climate.lon.toFixed(4)}° · 24-hour profile` : "Retrieve climate data to populate this summary."}</p></div><Satellite aria-hidden /></div>{climate ? <ClimateSummary climate={climate} temperatureRange={temperatureRange} irradianceRange={irradianceRange} /> : <div className="summary-empty"><div className="summary-empty-icon"><CloudSun aria-hidden /></div><h3>No climate profile loaded</h3><p>Select a preset or enter coordinates, then retrieve climate data.</p></div>}</section>
+      <section className="climate-panel summary-panel climate-summary-panel"><div className="panel-heading"><div><h2>Climate summary</h2><p>{climate ? `${climate.lat.toFixed(4)}°, ${climate.lon.toFixed(4)}° · 24-hour profile` : "Retrieve climate data to populate this summary."}</p></div><Satellite aria-hidden /></div>{climate ? <ClimateSummary climate={climate} temperatureRange={temperatureRange} irradianceRange={irradianceRange} /> : <div className="summary-empty"><div className="summary-empty-icon"><CloudSun aria-hidden /></div><h3>No climate profile loaded</h3><p>Select a preset or enter coordinates, then retrieve climate data.</p></div>}</section>
     </div>
   </div>;
 }

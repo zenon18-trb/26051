@@ -16,6 +16,7 @@ import {
   AppWindow,
   ArrowUpRight,
   ArrowDown,
+  ArrowRight,
   Box,
   ClipboardList,
   CloudSun,
@@ -99,6 +100,7 @@ export default function Home() {
     vents,
     occupants,
     hvac,
+    simulationResult,
     isMaterialsConfigured,
     isWindowsConfigured,
     isVentilationConfigured,
@@ -108,6 +110,26 @@ export default function Home() {
   } = useShelterConfiguration();
 
   const isDashboard = activeItem === "Dashboard";
+  const nextStep = (() => {
+    switch (activeItem) {
+      case "Location Climate":
+        return { item: "Shelter Configuration", label: "Next: Shelter configuration", ready: Boolean(location && climate), hint: "Load a climate profile to continue." };
+      case "Shelter Configuration":
+        return { item: "Materials Library", label: "Next: Materials", ready: Boolean(geometry), hint: "Save valid shelter dimensions to continue." };
+      case "Materials Library":
+        return { item: "Windows & Glazing", label: "Next: Windows & glazing", ready: isMaterialsConfigured, hint: "Add valid wall and roof layers to continue." };
+      case "Windows & Glazing":
+        return { item: "Ventilation & Occupants", label: "Next: Ventilation & occupants", ready: isWindowsConfigured, hint: "Save a valid window configuration to continue." };
+      case "Ventilation & Occupants":
+        return { item: "HVAC & Thermal Control", label: "Next: HVAC & thermal control", ready: isVentilationAndOccupantsConfigured, hint: "Save ventilation and occupant settings to continue." };
+      case "HVAC & Thermal Control":
+        return { item: "Analysis", label: "Next: Run analysis", ready: isHvacConfigured, hint: "Save a valid HVAC configuration to continue." };
+      case "Analysis":
+        return { item: "Reports", label: "View results", ready: Boolean(simulationResult), hint: "Run the simulation to view its results." };
+      default:
+        return null;
+    }
+  })();
 
   function goTo(item: string) {
     setActiveItem(item);
@@ -244,6 +266,23 @@ export default function Home() {
                 onNavigate={(item) => goTo(item)}
               />
             </>
+          )}
+          {nextStep && (
+            <nav className="workflow-next" aria-label="Continue configuration">
+              <p id="workflow-next-status" aria-live="polite">
+                {nextStep.ready ? "This stage is complete." : nextStep.hint}
+              </p>
+              <button
+                type="button"
+                className="btn-square workflow-next-button"
+                onClick={() => goTo(nextStep.item)}
+                disabled={!nextStep.ready}
+                aria-describedby="workflow-next-status"
+              >
+                {nextStep.label}
+                <ArrowRight aria-hidden />
+              </button>
+            </nav>
           )}
         </main>
         {isDashboard ? (

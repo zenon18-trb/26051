@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useReducedMotion } from "framer-motion";
 import {
   AlertTriangle,
   ArrowDown,
@@ -25,6 +26,7 @@ import {
   type MaterialLayer,
 } from "@/lib/api";
 import { useShelterConfiguration } from "@/context/ShelterConfigurationContext";
+import { ThreeMaterialsPreview } from "@/components/ThreeMaterialsPreview";
 
 type AssemblyTarget = "wall" | "roof";
 
@@ -94,6 +96,7 @@ export function MaterialsLibrary() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMaterialId, setSelectedMaterialId] = useState<string | null>(null);
+  const reduceMotion = useReducedMotion();
 
   // Load materials from backend API
   const loadMaterialsData = useCallback(async () => {
@@ -473,6 +476,12 @@ export function MaterialsLibrary() {
                   <span className="cross-section-title">
                     {activeAssembly === "wall" ? "Wall Assembly Cross-Section" : "Roof Assembly Cross-Section"}
                   </span>
+                  <ThreeMaterialsPreview
+                    layers={currentLayers}
+                    materials={materialsMap}
+                    target={activeAssembly}
+                    reduceMotion={Boolean(reduceMotion)}
+                  />
                   <div className="cross-section-layers">
                     <div className="cs-boundary cs-outdoor">Outdoor (R_so = 0.04)</div>
                     {currentLayers.map((layer, idx) => {

@@ -104,6 +104,8 @@ export function VentilationOccupants() {
   }, [occupantsStr, parsedOccupants]);
 
   const isFormValid = !occupantsError;
+  const exceedsRecommendedOccupancy =
+    isFormValid && Number.isInteger(parsedOccupants) && parsedOccupants > 8;
 
   // Derived metrics
   const ventMetrics = useMemo(() => {
@@ -278,7 +280,13 @@ export function VentilationOccupants() {
                     }}
                     className={occupantsError ? "input-error" : ""}
                     aria-invalid={Boolean(occupantsError)}
-                    aria-describedby={occupantsError ? `${occupantsInputId}-error` : undefined}
+                    aria-describedby={
+                      occupantsError
+                        ? `${occupantsInputId}-error`
+                        : exceedsRecommendedOccupancy
+                        ? `${occupantsInputId}-capacity-warning`
+                        : undefined
+                    }
                   />
                 </label>
                 {occupantsError ? (
@@ -289,6 +297,19 @@ export function VentilationOccupants() {
                   <small className="field-hint">
                     Integer value (≥ 0). Enter 0 for unmanned equipment shelter.
                   </small>
+                )}
+                {exceedsRecommendedOccupancy && (
+                  <div
+                    id={`${occupantsInputId}-capacity-warning`}
+                    className="occupancy-capacity-warning"
+                    role="status"
+                  >
+                    <AlertTriangle aria-hidden />
+                    <span>
+                      <strong>3D preview limit:</strong> The model displays a maximum of 8 people. All {parsedOccupants}
+                      entered occupants are still used in the thermal simulation.
+                    </span>
+                  </div>
                 )}
               </div>
             </div>

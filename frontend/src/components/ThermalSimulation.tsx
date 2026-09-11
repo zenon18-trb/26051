@@ -1,33 +1,29 @@
 "use client";
 
 import { useState } from "react";
+import { useReducedMotion } from "framer-motion";
 import {
   Activity,
   AlertCircle,
   ArrowRight,
   CheckCircle2,
-  ChevronRight,
-  Clock,
   Cpu,
   Database,
-  Flame,
-  Gauge,
+  FileDown,
   Info,
   Loader2,
   Play,
   RotateCcw,
-  ShieldAlert,
   ShieldCheck,
-  Sparkles,
-  ThermometerSnowflake,
   XCircle,
 } from "lucide-react";
 import {
   serializeSimulationRequest,
   simulateShelter,
-  type SimulationResponse,
 } from "@/lib/api";
+import { openPrintableSimulationReport } from "@/lib/printSimulationReport";
 import { useShelterConfiguration } from "@/context/ShelterConfigurationContext";
+import { ThreeAnalysisHouse } from "@/components/ThreeAnalysisHouse";
 
 export function ThermalSimulation({
   onNavigateToResults,
@@ -55,6 +51,7 @@ export function ThermalSimulation({
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const reduceMotion = useReducedMotion();
 
   // Pre-flight check item list
   const preFlightChecks = [
@@ -148,6 +145,22 @@ export function ThermalSimulation({
     } finally {
       setIsLoading(false);
     }
+  }
+
+  function handleDownloadReport() {
+    if (!simulationResult) return;
+    openPrintableSimulationReport({
+      result: simulationResult,
+      locationName: location?.preset?.name ?? "Custom location",
+      locationCoordinates: location ? `${location.lat.toFixed(4)}°, ${location.lon.toFixed(4)}°` : undefined,
+      geometry,
+      wallLayers,
+      roofLayers,
+      windows,
+      vents,
+      occupants,
+      hvac,
+    });
   }
 
   return (
@@ -294,6 +307,21 @@ export function ThermalSimulation({
             <Activity aria-hidden className="text-slate-400" />
           </div>
 
+          <div className="analysis-house-wrap">
+            <ThreeAnalysisHouse
+              geometry={geometry}
+              wallLayers={wallLayers}
+              roofLayers={roofLayers}
+              windows={windows}
+              vents={vents}
+              occupants={occupants}
+              hvac={hvac}
+              isRunning={isLoading}
+              reduceMotion={Boolean(reduceMotion)}
+            />
+            <p className="preview-caption">Assembled system model · Envelope, glazing, vents, occupants and HVAC shown from active configuration</p>
+          </div>
+
           {simulationResult ? (
             <div className="geometry-preview-container">
               {/* Success Banner */}
@@ -376,6 +404,14 @@ export function ThermalSimulation({
               </div>
 
               {/* View Results Call-to-Action */}
+              <button
+                type="button"
+                className="secondary-button analysis-report-button"
+                onClick={handleDownloadReport}
+              >
+                <FileDown aria-hidden />
+                Download PDF Report
+              </button>
               <button
                 type="button"
                 className="primary-button"
