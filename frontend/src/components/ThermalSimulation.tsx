@@ -149,6 +149,13 @@ export function ThermalSimulation({
 
   function handleDownloadReport() {
     if (!simulationResult) return;
+    let houseImage: string | undefined;
+    try {
+      const canvas = document.querySelector<HTMLCanvasElement>('canvas[data-analysis-house-capture="true"]');
+      houseImage = canvas?.toDataURL("image/png");
+    } catch {
+      // The report remains available if the browser declines canvas capture.
+    }
     openPrintableSimulationReport({
       result: simulationResult,
       locationName: location?.preset?.name ?? "Custom location",
@@ -160,6 +167,7 @@ export function ThermalSimulation({
       vents,
       occupants,
       hvac,
+      houseImage,
     });
   }
 

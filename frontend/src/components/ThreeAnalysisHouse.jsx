@@ -9,7 +9,7 @@ export function ThreeAnalysisHouse({ geometry, wallLayers, roofLayers, windows, 
   const mountRef = useRef(null); const [nightMode, setNightMode] = useState(false);
   useEffect(() => {
     const mount = mountRef.current; if (!mount) return undefined;
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); renderer.shadowMap.enabled = true; renderer.outputColorSpace = THREE.SRGBColorSpace; mount.appendChild(renderer.domElement);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true }); renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); renderer.shadowMap.enabled = true; renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.domElement.dataset.analysisHouseCapture = "true"; mount.appendChild(renderer.domElement);
     const scene = new THREE.Scene(); scene.fog = new THREE.Fog(nightMode ? 0x0b1510 : 0xe6eadf, 10, 37); const camera = new THREE.PerspectiveCamera(37, 1, .1, 100);
     const length = geometry?.length_m ?? 6, width = geometry?.width_m ?? 4, height = geometry?.height_m ?? 2.8; const scale = 5.5 / Math.max(length, width, height, 1); const L = length * scale, W = width * scale, H = height * scale;
     scene.add(new THREE.HemisphereLight(nightMode ? 0x829f94 : 0xffffff, nightMode ? 0x07100b : 0xa8b59f, nightMode ? 1.1 : 1.65)); const sun = new THREE.DirectionalLight(nightMode ? 0xf4ba7a : 0xffffff, nightMode ? 2.1 : 2.5); sun.position.set(7, 10, 6); sun.castShadow = true; scene.add(sun); const interior = new THREE.PointLight(windows?.kind === "open" ? 0x70c6a8 : 0xf4ba7a, nightMode ? 13 : 5.5, 14); interior.position.set(0, H * .55, 0); scene.add(interior);
