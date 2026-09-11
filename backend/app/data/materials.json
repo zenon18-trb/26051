@@ -30,6 +30,21 @@
     "notes": "Common structural backing/finish."
   },
   {
+    "id": "plasterboard",
+    "name": "Gypsum Plasterboard",
+    "category": "interior finish",
+    "k": 0.16,
+    "thermal_conductivity": 0.16,
+    "density": 800.0,
+    "specific_heat": 1090.0,
+    "typical_thickness": 0.012,
+    "relative_cost": "low (approximate)",
+    "relative_weight": "moderate (approximate)",
+    "confidence": "reference",
+    "source": "ASHRAE Handbook, gypsum board typical properties",
+    "notes": "Standard 12 mm interior gypsum-board finish."
+  },
+  {
     "id": "concrete",
     "name": "Concrete",
     "category": "masonry",

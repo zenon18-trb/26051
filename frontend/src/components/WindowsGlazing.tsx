@@ -6,11 +6,8 @@ import {
   AlertTriangle,
   AppWindow,
   CheckCircle2,
-  Compass,
   Database,
   Info,
-  Layers,
-  Ruler,
   ShieldCheck,
   SunMedium,
 } from "lucide-react";
@@ -381,6 +378,7 @@ export function IsometricWindowShelterSvg({
   windowArea: number;
   kind: "glazed" | "open";
 }) {
+  void orientation;
   const maxDim = Math.max(length, width, height, 1.0);
   const scale = 110 / maxDim;
 

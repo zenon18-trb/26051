@@ -215,6 +215,12 @@ def test_materials_endpoint() -> None:
     assert "source" in puf_mat
     assert "notes" in puf_mat
 
+    # The standard cabin and cold-post presets use a 12 mm plasterboard finish.
+    plasterboard = next((m for m in materials_list if m["id"] == "plasterboard"), None)
+    assert plasterboard is not None
+    assert plasterboard["k"] == pytest.approx(0.16)
+    assert plasterboard["typical_thickness"] == pytest.approx(0.012)
+
 
 # Test 12 — dependencies purity isolation check
 def test_simulation_engine_imports_purity() -> None:

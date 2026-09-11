@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
+import { useReducedMotion } from "framer-motion";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -17,6 +18,7 @@ import {
   type VentConfig,
 } from "@/lib/api";
 import { useShelterConfiguration } from "@/context/ShelterConfigurationContext";
+import { ThreeVentilationPreview } from "@/components/ThreeVentilationPreview";
 
 type OccupantPreset = {
   id: string;
@@ -74,6 +76,7 @@ export function VentilationOccupants() {
   );
 
   const occupantsInputId = useId();
+  const reduceMotion = useReducedMotion();
 
   // Geometry volume
   const shelterVolume = useMemo(() => {
@@ -334,13 +337,16 @@ export function VentilationOccupants() {
             <div className="geometry-preview-container">
               {/* Airflow & Occupant Schematic SVG */}
               <div className="isometric-viewport">
-                <VentilationSchematicSvg
+                <ThreeVentilationPreview
                   isOpen={isOpen}
                   occupantsCount={parsedOccupants}
-                  volumeM3={shelterVolume}
+                  length={geometry?.length_m ?? 6.0}
+                  width={geometry?.width_m ?? 4.0}
+                  height={geometry?.height_m ?? 2.8}
+                  reduceMotion={Boolean(reduceMotion)}
                 />
                 <span className="preview-caption">
-                  Engineering schematic · Airflow circulation and occupant internal heat release
+                  WebGL engineering preview · Airflow circulation and occupant sensible load
                 </span>
               </div>
 
@@ -428,7 +434,7 @@ export function VentilationOccupants() {
 /**
  * Schematic illustration of shelter ventilation airflow and internal occupant sensible heat.
  */
-function VentilationSchematicSvg({
+export function VentilationSchematicSvg({
   isOpen,
   occupantsCount,
   volumeM3,
@@ -437,6 +443,7 @@ function VentilationSchematicSvg({
   occupantsCount: number;
   volumeM3: number | null;
 }) {
+  void volumeM3;
   return (
     <svg
       viewBox="0 0 400 210"
