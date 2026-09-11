@@ -2082,3 +2082,191 @@ select:focus-visible {
 .occupancy-capacity-warning { display: flex; align-items: flex-start; gap: 8px; margin-top: 10px; padding: 10px 12px; border: 1px solid #e6c277; border-radius: 6px; background: #fff8e8; color: #765617; font-size: 11px; line-height: 1.45; }.occupancy-capacity-warning svg { width: 16px; flex: 0 0 16px; margin-top: 1px; }.occupancy-capacity-warning strong { color: #5f4511; }
 
 .analysis-report-button { display: flex; width: 100%; align-items: center; justify-content: center; gap: 8px; margin-top: 6px; padding: 12px; border: 1px solid var(--ring); font-size: 12px; }.analysis-report-button svg { width: 16px; }
+
+/* Workspace palette: night blueprint. Kept separate from the cinematic landing page. */
+.app-shell:not(.app-shell-landing) {
+  --workspace-ink: #142033;
+  --workspace-paper: #f8fbff;
+  --workspace-mint: #a9d8ff;
+  --workspace-coral: #cb5a2e;
+  --workspace-yellow: #3d63ff;
+  --workspace-blue: #7bb7ff;
+  --workspace-outline: #142033;
+  --navy: #142033;
+  --ink: #142033;
+  --ring: #aebbd0;
+  background: #e8eef6;
+}
+.app-shell:not(.app-shell-landing) .main-area { background: #e8eef6; }
+.app-shell:not(.app-shell-landing) .content-area { background-image: radial-gradient(rgba(61, 99, 255, .16) .75px, transparent .75px); }
+.app-shell:not(.app-shell-landing) .page-heading h1,
+.app-shell:not(.app-shell-landing) .climate-heading h1 { color: #142033; text-shadow: 2px 2px 0 #a9d8ff; }
+.app-shell:not(.app-shell-landing) .page-description,
+.app-shell:not(.app-shell-landing) .section-heading p,
+.app-shell:not(.app-shell-landing) .panel-heading p,
+.app-shell:not(.app-shell-landing) .configured-pill,
+.app-shell:not(.app-shell-landing) .field-hint { color: #60708a; }
+.app-shell:not(.app-shell-landing) .surface-card,
+.app-shell:not(.app-shell-landing) .climate-panel,
+.app-shell:not(.app-shell-landing) .panel,
+.app-shell:not(.app-shell-landing) .preset-card,
+.app-shell:not(.app-shell-landing) .geometry-preset-btn,
+.app-shell:not(.app-shell-landing) .orientation-btn,
+.app-shell:not(.app-shell-landing) .material-card,
+.app-shell:not(.app-shell-landing) .glazing-kind-card,
+.app-shell:not(.app-shell-landing) .mode-toggle,
+.app-shell:not(.app-shell-landing) .materials-view-toggle { background: #f8fbff; color: #142033; border-color: #aebbd0; }
+.app-shell:not(.app-shell-landing) .climate-page input,
+.app-shell:not(.app-shell-landing) .climate-page select,
+.app-shell:not(.app-shell-landing) .geometry-field input,
+.app-shell:not(.app-shell-landing) .coordinate-fields input { background: #ffffff; color: #142033; border-color: #aebbd0; }
+.app-shell:not(.app-shell-landing) .climate-page input:focus,
+.app-shell:not(.app-shell-landing) .geometry-field input:focus,
+.app-shell:not(.app-shell-landing) .coordinate-fields input:focus { border-color: #3d63ff; box-shadow: 0 0 0 3px rgba(61, 99, 255, .16); }
+.app-shell:not(.app-shell-landing) .mode-toggle .mode-active,
+.app-shell:not(.app-shell-landing) .materials-view-toggle .mode-active,
+.app-shell:not(.app-shell-landing) .primary-button,
+.app-shell:not(.app-shell-landing) .secondary-button,
+.app-shell:not(.app-shell-landing) .climate-submit,
+.app-shell:not(.app-shell-landing) .launcher-btn,
+.app-shell:not(.app-shell-landing) .rec-apply-btn,
+.app-shell:not(.app-shell-landing) .fix-eval-btn,
+.app-shell:not(.app-shell-landing) .add-layer-btn { background: #3d63ff !important; color: #ffffff !important; }
+.app-shell:not(.app-shell-landing) .preset-selected,
+.app-shell:not(.app-shell-landing) .preset-card:hover,
+.app-shell:not(.app-shell-landing) .geometry-preset-btn-active,
+.app-shell:not(.app-shell-landing) .orientation-btn-active,
+.app-shell:not(.app-shell-landing) .material-card-selected,
+.app-shell:not(.app-shell-landing) .material-card:hover,
+.app-shell:not(.app-shell-landing) .glazing-kind-card-active,
+.app-shell:not(.app-shell-landing) .glazing-kind-card:hover { border-color: #3d63ff; background: #edf2ff; }
+.app-shell:not(.app-shell-landing) .notice { background: #e5f1ff; border-color: #a9c8ed; color: #142033; }
+
+@media (min-width: 851px) {
+  .app-shell:not(.app-shell-landing) .app-header,
+  .app-shell:not(.app-shell-landing) .app-header.app-header-overlay,
+  .app-shell:not(.app-shell-landing) .app-header.app-header-solid { background: #142033; border-right-color: rgba(169, 216, 255, .22); }
+  .app-shell:not(.app-shell-landing) .brand-lockup {
+    border-color: rgba(169, 216, 255, .24);
+    background: #1d2c44;
+    color: #f8fbff;
+    box-shadow: 5px 5px 0 #3d63ff;
+  }
+  .app-shell:not(.app-shell-landing) .brand-lockup .brand-geo { color: #f8fbff; }
+  .app-shell:not(.app-shell-landing) .brand-lockup .brand-name small { color: #a9d8ff; }
+  .app-shell:not(.app-shell-landing) .sidebar-nav-label { color: #8ea2be; }
+  .app-shell:not(.app-shell-landing) .nav-center button,
+  .app-shell:not(.app-shell-landing) .app-header-solid .nav-center button { color: #cad6e7; }
+  .app-shell:not(.app-shell-landing) .nav-center button:hover { background: rgba(123, 183, 255, .12); color: #ffffff; }
+  .app-shell:not(.app-shell-landing) .nav-center button.nav-link-active { background: #3d63ff; color: #ffffff; box-shadow: 4px 4px 0 #cb5a2e; }
+  .app-shell:not(.app-shell-landing) .nav-right { border-top-color: rgba(169, 216, 255, .18); }
+  .app-shell:not(.app-shell-landing) .btn-square-nav { border-color: #7bb7ff; background: transparent; color: #f8fbff; box-shadow: 4px 4px 0 #3d63ff; }
+}
+
+/* Engineering console refinement: subdued slate surfaces and a single steel accent. */
+.app-shell:not(.app-shell-landing) {
+  --workspace-ink: #202b35;
+  --workspace-paper: #ffffff;
+  --workspace-mint: #d6e5e8;
+  --workspace-coral: #2c6476;
+  --workspace-yellow: #2c6476;
+  --workspace-blue: #8aabb5;
+  --workspace-outline: #202b35;
+  --navy: #202b35;
+  --ink: #202b35;
+  --ring: #cbd3da;
+  background: #f2f4f6;
+}
+.app-shell:not(.app-shell-landing) .main-area { background: #f2f4f6; }
+.app-shell:not(.app-shell-landing) .content-area { background-image: radial-gradient(rgba(54, 75, 91, .08) .65px, transparent .65px); }
+.app-shell:not(.app-shell-landing) .page-heading h1,
+.app-shell:not(.app-shell-landing) .climate-heading h1 { color: #202b35; text-shadow: none; }
+.app-shell:not(.app-shell-landing) .page-description,
+.app-shell:not(.app-shell-landing) .section-heading p,
+.app-shell:not(.app-shell-landing) .panel-heading p,
+.app-shell:not(.app-shell-landing) .configured-pill,
+.app-shell:not(.app-shell-landing) .field-hint { color: #687681; }
+.app-shell:not(.app-shell-landing) .surface-card,
+.app-shell:not(.app-shell-landing) .climate-panel,
+.app-shell:not(.app-shell-landing) .panel,
+.app-shell:not(.app-shell-landing) .preset-card,
+.app-shell:not(.app-shell-landing) .geometry-preset-btn,
+.app-shell:not(.app-shell-landing) .orientation-btn,
+.app-shell:not(.app-shell-landing) .material-card,
+.app-shell:not(.app-shell-landing) .glazing-kind-card,
+.app-shell:not(.app-shell-landing) .mode-toggle,
+.app-shell:not(.app-shell-landing) .materials-view-toggle { background: #ffffff; color: #202b35; border-color: #cbd3da; }
+.app-shell:not(.app-shell-landing) .climate-page input,
+.app-shell:not(.app-shell-landing) .climate-page select,
+.app-shell:not(.app-shell-landing) .geometry-field input,
+.app-shell:not(.app-shell-landing) .coordinate-fields input { background: #ffffff; color: #202b35; border-color: #bfc9d1; }
+.app-shell:not(.app-shell-landing) .climate-page input:focus,
+.app-shell:not(.app-shell-landing) .geometry-field input:focus,
+.app-shell:not(.app-shell-landing) .coordinate-fields input:focus { border-color: #2c6476; box-shadow: 0 0 0 3px rgba(44, 100, 118, .12); }
+.app-shell:not(.app-shell-landing) .mode-toggle .mode-active,
+.app-shell:not(.app-shell-landing) .materials-view-toggle .mode-active,
+.app-shell:not(.app-shell-landing) .primary-button,
+.app-shell:not(.app-shell-landing) .secondary-button,
+.app-shell:not(.app-shell-landing) .climate-submit,
+.app-shell:not(.app-shell-landing) .launcher-btn,
+.app-shell:not(.app-shell-landing) .rec-apply-btn,
+.app-shell:not(.app-shell-landing) .fix-eval-btn,
+.app-shell:not(.app-shell-landing) .add-layer-btn { background: #2c6476 !important; color: #ffffff !important; }
+.app-shell:not(.app-shell-landing) .preset-selected,
+.app-shell:not(.app-shell-landing) .preset-card:hover,
+.app-shell:not(.app-shell-landing) .geometry-preset-btn-active,
+.app-shell:not(.app-shell-landing) .orientation-btn-active,
+.app-shell:not(.app-shell-landing) .material-card-selected,
+.app-shell:not(.app-shell-landing) .material-card:hover,
+.app-shell:not(.app-shell-landing) .glazing-kind-card-active,
+.app-shell:not(.app-shell-landing) .glazing-kind-card:hover { border-color: #2c6476; background: #edf4f5; }
+.app-shell:not(.app-shell-landing) .notice { background: #e7f0f1; border-color: #b9d0d5; color: #202b35; }
+
+@media (min-width: 851px) {
+  .app-shell:not(.app-shell-landing) .app-header,
+  .app-shell:not(.app-shell-landing) .app-header.app-header-overlay,
+  .app-shell:not(.app-shell-landing) .app-header.app-header-solid { background: #202b35; border-right-color: rgba(255, 255, 255, .12); }
+  .app-shell:not(.app-shell-landing) .brand-lockup {
+    border-color: rgba(255, 255, 255, .16);
+    background: #273641;
+    color: #ffffff;
+    box-shadow: none;
+  }
+  .app-shell:not(.app-shell-landing) .brand-lockup:hover { transform: none; box-shadow: none; }
+  .app-shell:not(.app-shell-landing) .brand-lockup .brand-geo { color: #ffffff; }
+  .app-shell:not(.app-shell-landing) .brand-lockup .brand-name small { color: #aebfc8; }
+  .app-shell:not(.app-shell-landing) .sidebar-nav-label { color: #9baab5; }
+  .app-shell:not(.app-shell-landing) .nav-center button,
+  .app-shell:not(.app-shell-landing) .app-header-solid .nav-center button { color: #d2dbe1; }
+  .app-shell:not(.app-shell-landing) .nav-center button:hover { background: rgba(255, 255, 255, .07); color: #ffffff; }
+  .app-shell:not(.app-shell-landing) .nav-center button.nav-link-active { background: #2c6476; color: #ffffff; box-shadow: inset 3px 0 0 #9bc8d0; }
+  .app-shell:not(.app-shell-landing) .nav-right { border-top-color: rgba(255, 255, 255, .12); }
+  .app-shell:not(.app-shell-landing) .btn-square-nav { border-color: #738895; background: transparent; color: #edf2f4; box-shadow: none; }
+}
+
+/* Section colour is semantic: it identifies the kind of engineering work, not decoration. */
+.app-shell:not(.app-shell-landing) .location-climate-page .eyebrow { color: #2c718a; }
+.app-shell:not(.app-shell-landing) .location-climate-page .selection-panel { border-top: 3px solid #b8864a; background: #fdfbf7; }
+.app-shell:not(.app-shell-landing) .location-climate-page .climate-summary-panel { border-top: 3px solid #2c718a; background: #f3f8fa; }
+.app-shell:not(.app-shell-landing) .location-climate-page .summary-empty-icon { background: #dcecf1; color: #2c718a; }
+
+@media (min-width: 851px) {
+  .app-shell:not(.app-shell-landing) .nav-item-location-climate svg { color: #6eaebd; }
+  .app-shell:not(.app-shell-landing) .nav-item-shelter-configuration svg { color: #9aad78; }
+  .app-shell:not(.app-shell-landing) .nav-item-materials-library svg { color: #d09a62; }
+  .app-shell:not(.app-shell-landing) .nav-item-windows-glazing svg { color: #83a7d1; }
+  .app-shell:not(.app-shell-landing) .nav-item-ventilation-occupants svg { color: #aa98c6; }
+  .app-shell:not(.app-shell-landing) .nav-item-hvac-thermal-control svg { color: #d28a67; }
+  .app-shell:not(.app-shell-landing) .nav-item-analysis svg { color: #c7819a; }
+  .app-shell:not(.app-shell-landing) .nav-item-reports svg { color: #a5b2bf; }
+  .app-shell:not(.app-shell-landing) .nav-center .nav-item.nav-link-active { color: #ffffff; box-shadow: inset 3px 0 0 rgba(255, 255, 255, .58); }
+  .app-shell:not(.app-shell-landing) .nav-center .nav-item-location-climate.nav-link-active { background: #2c718a; }
+  .app-shell:not(.app-shell-landing) .nav-center .nav-item-shelter-configuration.nav-link-active { background: #61794e; }
+  .app-shell:not(.app-shell-landing) .nav-center .nav-item-materials-library.nav-link-active { background: #9c6739; }
+  .app-shell:not(.app-shell-landing) .nav-center .nav-item-windows-glazing.nav-link-active { background: #5278a6; }
+  .app-shell:not(.app-shell-landing) .nav-center .nav-item-ventilation-occupants.nav-link-active { background: #766392; }
+  .app-shell:not(.app-shell-landing) .nav-center .nav-item-hvac-thermal-control.nav-link-active { background: #ac6545; }
+  .app-shell:not(.app-shell-landing) .nav-center .nav-item-analysis.nav-link-active { background: #984d6c; }
+  .app-shell:not(.app-shell-landing) .nav-center .nav-item-reports.nav-link-active { background: #536d83; }
+  .app-shell:not(.app-shell-landing) .nav-center .nav-item.nav-link-active svg { color: #ffffff; }
+}

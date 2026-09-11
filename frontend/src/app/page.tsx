@@ -502,7 +502,7 @@ function AppHeader({
             return (
             <button
               key={item}
-              className={activeItem === item ? "nav-link-active" : undefined}
+              className={`nav-item nav-item-${item.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")} ${activeItem === item ? "nav-link-active" : ""}`}
               onClick={() => onNavigate(item)}
               aria-current={activeItem === item ? "page" : undefined}
             >

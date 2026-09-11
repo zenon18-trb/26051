@@ -93,7 +93,7 @@ export function LocationClimate() {
     }
   }
 
-  return <div className="climate-page">
+  return <div className="climate-page location-climate-page">
     <div className="page-heading climate-heading"><div><p className="eyebrow">STAGE 1 · LOCATION & CLIMATE</p><h1>Location & Climate</h1><p className="page-description">Choose a reference environment or enter coordinates to load the 24-hour climate profile for your thermal analysis.</p></div><div className="configured-pill"><span className={`status-dot ${climate ? "status-dot-configured" : ""}`} />{climate ? "Configured" : "Not configured"}</div></div>
 
     {error && <div className="climate-error" role="alert"><AlertTriangle aria-hidden /><div><strong>Climate data could not be loaded</strong><p>{error}</p></div><button className="text-button" onClick={() => setError(null)}>Dismiss</button></div>}
