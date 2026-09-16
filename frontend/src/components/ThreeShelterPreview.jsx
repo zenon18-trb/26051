@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
-import { createSceneRenderer, disposeObject3D, observeRendererSize } from "@/lib/three/scene";
+import { addContactShadow, addLightingRig, createSceneRenderer, createSurfaceMaterial, disposeObject3D, observeRendererSize } from "@/lib/three/scene";
 
 const orientationAngles = { North: 0, East: Math.PI / 2, South: Math.PI, West: -Math.PI / 2 };
 
@@ -24,12 +24,7 @@ export function ThreeShelterPreview({ length, width, height, orientation, reduce
     shelter.rotation.y = orientationAngles[orientation] ?? 0;
     scene.add(shelter);
 
-    const ambient = new THREE.HemisphereLight(nightMode ? 0x8ca6a1 : 0xffffff, nightMode ? 0x07100b : 0xa9b5a2, nightMode ? 1.15 : 1.65);
-    scene.add(ambient);
-    const key = new THREE.DirectionalLight(nightMode ? 0xf4ba7a : 0xffffff, nightMode ? 2.2 : 2.6);
-    key.position.set(6, 10, 7);
-    key.castShadow = true;
-    scene.add(key);
+    addLightingRig(scene, { nightMode, sunPosition: [6, 10, 7], daySunIntensity: 2.6, nightSunIntensity: 2.2 });
     const accent = new THREE.PointLight(nightMode ? 0xd95c31 : 0x416a4c, nightMode ? 18 : 8, 15);
     accent.position.set(-4, 3, -3);
     scene.add(accent);
@@ -38,12 +33,12 @@ export function ThreeShelterPreview({ length, width, height, orientation, reduce
     const W = width * scale;
     const H = height * scale;
     const faceMaterials = [
-      new THREE.MeshPhysicalMaterial({ color: 0x567866, metalness: 0.18, roughness: 0.56 }),
-      new THREE.MeshPhysicalMaterial({ color: 0x314d3e, metalness: 0.24, roughness: 0.48 }),
-      new THREE.MeshPhysicalMaterial({ color: 0x89a478, metalness: 0.16, roughness: 0.4, clearcoat: 0.2 }),
-      new THREE.MeshStandardMaterial({ color: 0x1e3026, roughness: 0.9 }),
-      new THREE.MeshPhysicalMaterial({ color: 0x6d967c, metalness: 0.15, roughness: 0.5 }),
-      new THREE.MeshPhysicalMaterial({ color: 0x456652, metalness: 0.18, roughness: 0.58 }),
+      createSurfaceMaterial("wall", { color: 0x567866, metalness: 0.18, roughness: 0.56 }),
+      createSurfaceMaterial("wall", { color: 0x314d3e, metalness: 0.24, roughness: 0.48 }),
+      createSurfaceMaterial("roof", { color: 0x89a478, clearcoat: 0.2, roughness: 0.4 }),
+      createSurfaceMaterial("wall", { color: 0x1e3026, roughness: 0.9 }),
+      createSurfaceMaterial("wall", { color: 0x6d967c, metalness: 0.15, roughness: 0.5 }),
+      createSurfaceMaterial("wall", { color: 0x456652, metalness: 0.18, roughness: 0.58 }),
     ];
     const house = new THREE.Mesh(new THREE.BoxGeometry(L, H, W), faceMaterials);
     house.position.y = H / 2;
@@ -75,11 +70,12 @@ export function ThreeShelterPreview({ length, width, height, orientation, reduce
 
     const ground = new THREE.Mesh(
       new THREE.PlaneGeometry(34, 34),
-      new THREE.MeshStandardMaterial({ color: nightMode ? 0x0b120e : 0xdce2d5, metalness: 0.1, roughness: 0.9 })
+      createSurfaceMaterial("ground", { color: nightMode ? 0x0b120e : 0xdce2d5, metalness: 0.1 })
     );
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
     scene.add(ground);
+    addContactShadow(scene, { size: Math.max(L, W) * 1.2, nightMode });
     const grid = new THREE.GridHelper(30, 30, nightMode ? 0x5c9673 : 0x95a890, nightMode ? 0x284734 : 0xc4cec0);
     grid.position.y = 0.006;
     const gridMaterials = Array.isArray(grid.material) ? grid.material : [grid.material];

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
-import { createSceneRenderer, disposeObject3D, observeRendererSize } from "@/lib/three/scene";
+import { addContactShadow, addLightingRig, createSceneRenderer, createSurfaceMaterial, disposeObject3D, observeRendererSize } from "@/lib/three/scene";
 import { createFresnelGlassMaterial } from "@/lib/three/shaders/materials";
 
 const orientationAngles = { North: 0, East: Math.PI / 2, South: Math.PI, West: -Math.PI / 2 };
@@ -27,19 +27,17 @@ export function ThreeGlazingPreview({ length, width, height, orientation, window
     shelter.rotation.y = orientationAngles[orientation] ?? 0;
     scene.add(shelter);
 
-    scene.add(new THREE.HemisphereLight(nightMode ? 0x76928a : 0xffffff, nightMode ? 0x07100b : 0x9fad98, nightMode ? 1.1 : 1.6));
-    const sun = new THREE.DirectionalLight(nightMode ? 0xf4ba7a : 0xffffff, nightMode ? 1.9 : 2.4);
-    sun.position.set(5, 8, 6); sun.castShadow = true; scene.add(sun);
+    addLightingRig(scene, { nightMode, sunPosition: [5, 8, 6], daySunIntensity: 2.4, nightSunIntensity: 1.9 });
     const windowLight = new THREE.PointLight(kind === "open" ? 0x8fc7b4 : 0xa9ddec, nightMode ? 11 : 6, 12);
     windowLight.position.set(0, H * 0.55, W / 2 + 1.2); scene.add(windowLight);
 
     const wallMaterials = [
-      new THREE.MeshStandardMaterial({ color: 0x5e7d68, roughness: 0.7 }),
-      new THREE.MeshStandardMaterial({ color: 0x385642, roughness: 0.76 }),
-      new THREE.MeshStandardMaterial({ color: 0x8ca77d, roughness: 0.55 }),
-      new THREE.MeshStandardMaterial({ color: 0x203527, roughness: 0.95 }),
-      new THREE.MeshStandardMaterial({ color: 0x6f9279, roughness: 0.66 }),
-      new THREE.MeshStandardMaterial({ color: 0x456550, roughness: 0.75 }),
+      createSurfaceMaterial("wall", { color: 0x5e7d68, roughness: 0.7 }),
+      createSurfaceMaterial("wall", { color: 0x385642, roughness: 0.76 }),
+      createSurfaceMaterial("roof", { color: 0x8ca77d, roughness: 0.55 }),
+      createSurfaceMaterial("wall", { color: 0x203527, roughness: 0.95 }),
+      createSurfaceMaterial("wall", { color: 0x6f9279, roughness: 0.66 }),
+      createSurfaceMaterial("wall", { color: 0x456550, roughness: 0.75 }),
     ];
     const house = new THREE.Mesh(new THREE.BoxGeometry(L, H, W), wallMaterials);
     house.position.y = H / 2; house.castShadow = true; house.receiveShadow = true; shelter.add(house);
@@ -63,7 +61,7 @@ export function ThreeGlazingPreview({ length, width, height, orientation, window
         const apertureGlow = new THREE.Mesh(new THREE.PlaneGeometry(paneWidth * 0.9, paneHeight * 0.9), new THREE.MeshBasicMaterial({ color: 0x4b9c85, transparent: true, opacity: 0.16 }));
         apertureGlow.position.z = 0.014; windowGroup.add(apertureGlow);
       }
-      const frameMaterial = new THREE.MeshStandardMaterial({ color: 0x1c3024, metalness: 0.48, roughness: 0.38 });
+      const frameMaterial = createSurfaceMaterial("frame", { color: 0x1c3024, metalness: 0.48, roughness: 0.38 });
       const frameDepth = 0.06;
       [[paneWidth, 0.07, 0, paneHeight / 2], [paneWidth, 0.07, 0, -paneHeight / 2], [0.07, paneHeight, paneWidth / 2, 0], [0.07, paneHeight, -paneWidth / 2, 0]].forEach(([frameW, frameH, x, y]) => {
         const frame = new THREE.Mesh(new THREE.BoxGeometry(frameW, frameH, frameDepth), frameMaterial);
@@ -73,8 +71,9 @@ export function ThreeGlazingPreview({ length, width, height, orientation, window
       cross.position.z = 0.06; windowGroup.add(cross);
     }
 
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), new THREE.MeshStandardMaterial({ color: nightMode ? 0x09100c : 0xdce1d6, roughness: 0.92 }));
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), createSurfaceMaterial("ground", { color: nightMode ? 0x09100c : 0xdce1d6 }));
     ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+    addContactShadow(scene, { size: Math.max(L, W) * 1.2, nightMode });
     const grid = new THREE.GridHelper(30, 30, nightMode ? 0x5c9673 : 0x93a890, nightMode ? 0x284734 : 0xc3ccc0);
     grid.position.y = 0.005;
     const gridMaterials = Array.isArray(grid.material) ? grid.material : [grid.material];
