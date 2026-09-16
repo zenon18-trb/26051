@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import { LocationClimate } from "@/components/LocationClimate";
 import { ShelterConfiguration } from "@/components/ShelterConfiguration";
@@ -80,8 +81,10 @@ const landingNav = [
   { label: "Reports", item: "Reports" },
 ] as const;
 
-export default function Home() {
-  const [activeItem, setActiveItem] = useState("Dashboard");
+export default function Home({ initialActiveItem = "Dashboard" }: { initialActiveItem?: string }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [activeItem, setActiveItem] = useState(initialActiveItem);
   const [menuOpen, setMenuOpen] = useState(false);
   const shouldReduceMotion = useReducedMotion();
   const { scrollY } = useScroll();
@@ -132,6 +135,16 @@ export default function Home() {
   })();
 
   function goTo(item: string) {
+    if (item === "Dashboard") {
+      if (pathname !== "/") {
+        router.push("/");
+        return;
+      }
+    } else if (pathname === "/") {
+      router.push("/configure");
+      return;
+    }
+
     setActiveItem(item);
     setMenuOpen(false);
   }
@@ -513,6 +526,7 @@ function AppHeader({
           })}
         </nav>
         <div className="nav-right">
+          {overlay && <a className="nav-register-link" href="/register">Create account</a>}
           <button
             className="mobile-menu"
             aria-label={menuOpen ? "Close navigation" : "Open navigation"}
@@ -548,6 +562,7 @@ function AppHeader({
             Begin configuration
             <ArrowUpRight className="btn-arrow-lg" aria-hidden />
           </button>
+          <a className="mobile-register-link" href="/register">Create an account</a>
         </div>
       )}
     </header>
