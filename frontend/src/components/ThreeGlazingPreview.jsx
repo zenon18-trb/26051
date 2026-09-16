@@ -31,23 +31,40 @@ export function ThreeGlazingPreview({ length, width, height, orientation, window
     const windowLight = new THREE.PointLight(kind === "open" ? 0x8fc7b4 : 0xa9ddec, nightMode ? 11 : 6, 12);
     windowLight.position.set(0, H * 0.55, W / 2 + 1.2); scene.add(windowLight);
 
-    const wallMaterials = [
-      createSurfaceMaterial("wall", { color: 0x5e7d68, roughness: 0.7 }),
-      createSurfaceMaterial("wall", { color: 0x385642, roughness: 0.76 }),
-      createSurfaceMaterial("roof", { color: 0x8ca77d, roughness: 0.55 }),
-      createSurfaceMaterial("wall", { color: 0x203527, roughness: 0.95 }),
-      createSurfaceMaterial("wall", { color: 0x6f9279, roughness: 0.66 }),
-      createSurfaceMaterial("wall", { color: 0x456550, roughness: 0.75 }),
-    ];
-    const house = new THREE.Mesh(new THREE.BoxGeometry(L, H, W), wallMaterials);
-    house.position.y = H / 2; house.castShadow = true; house.receiveShadow = true; shelter.add(house);
-    const edges = new THREE.LineSegments(new THREE.EdgesGeometry(house.geometry), new THREE.LineBasicMaterial({ color: 0x203b2d, transparent: true, opacity: 0.86 }));
-    edges.position.copy(house.position); shelter.add(edges);
-
     const visibleArea = Math.max(0, windowArea) * scale * scale;
     const paneWidth = Math.min(L * 0.72, Math.max(L * 0.16, Math.sqrt(Math.max(visibleArea, 0.08) * 1.55)));
     const paneHeight = Math.min(H * 0.68, Math.max(H * 0.16, visibleArea / paneWidth));
     const hasWindow = windowArea > 0.01;
+    const wallMaterial = createSurfaceMaterial("wall", { color: 0xffffff, textureSet: "plank", roughness: 0.68 });
+    const sideMaterial = createSurfaceMaterial("wall", { color: 0x385642, roughness: 0.76 });
+    const roofMaterial = createSurfaceMaterial("roof", { color: 0xffffff, textureSet: "corrugatedIron", metalness: 0.48, roughness: 0.48 });
+    const interiorMaterial = createSurfaceMaterial("wall", { color: 0x203527, roughness: 0.95 });
+    const house = new THREE.Group();
+    const wallDepth = Math.min(0.12, Math.max(0.055, Math.min(L, W) * 0.025));
+    const addPanel = (panelWidth, panelHeight, panelDepth, x, y, z, material) => {
+      const panel = new THREE.Mesh(new THREE.BoxGeometry(panelWidth, panelHeight, panelDepth), material);
+      panel.position.set(x, y, z); panel.castShadow = true; panel.receiveShadow = true; house.add(panel);
+    };
+    addPanel(L, H, wallDepth, 0, H / 2, -W / 2 + wallDepth / 2, interiorMaterial);
+    addPanel(wallDepth, H, W, -L / 2 + wallDepth / 2, H / 2, 0, sideMaterial);
+    addPanel(wallDepth, H, W, L / 2 - wallDepth / 2, H / 2, 0, sideMaterial);
+    addPanel(L, wallDepth, W, 0, wallDepth / 2, 0, interiorMaterial);
+    addPanel(L, wallDepth, W, 0, H - wallDepth / 2, 0, roofMaterial);
+    if (hasWindow) {
+      const openingBottom = H * 0.53 - paneHeight / 2;
+      const openingTop = H * 0.53 + paneHeight / 2;
+      const sideWidth = Math.max(0.01, (L - paneWidth) / 2);
+      addPanel(L, openingBottom, wallDepth, 0, openingBottom / 2, W / 2 - wallDepth / 2, wallMaterial);
+      addPanel(L, H - openingTop, wallDepth, 0, openingTop + (H - openingTop) / 2, W / 2 - wallDepth / 2, wallMaterial);
+      addPanel(sideWidth, paneHeight, wallDepth, -(paneWidth + sideWidth) / 2, H * 0.53, W / 2 - wallDepth / 2, wallMaterial);
+      addPanel(sideWidth, paneHeight, wallDepth, (paneWidth + sideWidth) / 2, H * 0.53, W / 2 - wallDepth / 2, wallMaterial);
+    } else {
+      addPanel(L, H, wallDepth, 0, H / 2, W / 2 - wallDepth / 2, wallMaterial);
+    }
+    shelter.add(house);
+    const edges = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(L, H, W)), new THREE.LineBasicMaterial({ color: 0x203b2d, transparent: true, opacity: 0.86 }));
+    edges.position.y = H / 2; shelter.add(edges);
+
     const windowGroup = new THREE.Group();
     windowGroup.position.set(0, H * 0.53, W / 2 + 0.025);
     shelter.add(windowGroup);
@@ -61,7 +78,7 @@ export function ThreeGlazingPreview({ length, width, height, orientation, window
         const apertureGlow = new THREE.Mesh(new THREE.PlaneGeometry(paneWidth * 0.9, paneHeight * 0.9), new THREE.MeshBasicMaterial({ color: 0x4b9c85, transparent: true, opacity: 0.16 }));
         apertureGlow.position.z = 0.014; windowGroup.add(apertureGlow);
       }
-      const frameMaterial = createSurfaceMaterial("frame", { color: 0x1c3024, metalness: 0.48, roughness: 0.38 });
+      const frameMaterial = createSurfaceMaterial("frame", { color: 0x59645e, textureSet: "metalPlate", metalness: 0.72, roughness: 0.38 });
       const frameDepth = 0.06;
       [[paneWidth, 0.07, 0, paneHeight / 2], [paneWidth, 0.07, 0, -paneHeight / 2], [0.07, paneHeight, paneWidth / 2, 0], [0.07, paneHeight, -paneWidth / 2, 0]].forEach(([frameW, frameH, x, y]) => {
         const frame = new THREE.Mesh(new THREE.BoxGeometry(frameW, frameH, frameDepth), frameMaterial);
@@ -71,7 +88,7 @@ export function ThreeGlazingPreview({ length, width, height, orientation, window
       cross.position.z = 0.06; windowGroup.add(cross);
     }
 
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), createSurfaceMaterial("ground", { color: nightMode ? 0x09100c : 0xdce1d6 }));
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), createSurfaceMaterial("ground", { color: nightMode ? 0x59615c : 0xffffff, textureSet: "concrete" }));
     ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
     addContactShadow(scene, { size: Math.max(L, W) * 1.2, nightMode });
     const grid = new THREE.GridHelper(30, 30, nightMode ? 0x5c9673 : 0x93a890, nightMode ? 0x284734 : 0xc3ccc0);

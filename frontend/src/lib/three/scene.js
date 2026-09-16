@@ -8,10 +8,43 @@ const surfacePresets = {
   shell: { roughness: 0.38, metalness: 0.2, clearcoat: 0.08 },
 };
 
+const textureSets = {
+  plank: { path: "/textures/polyhaven/weathered-plank", repeat: [2, 2] },
+  corrugatedIron: { path: "/textures/polyhaven/corrugated-iron", repeat: [2, 2] },
+  concrete: { path: "/textures/polyhaven/concrete-floor", repeat: [5, 5] },
+  metalPlate: { path: "/textures/polyhaven/metal-plate", repeat: [2, 2] },
+};
+
+const textureCache = new Map();
+
+function loadTexture(path, { color = false, repeat }) {
+  if (textureCache.has(path)) return textureCache.get(path);
+  const texture = new THREE.TextureLoader().load(path);
+  texture.colorSpace = color ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(...repeat);
+  texture.anisotropy = 4;
+  textureCache.set(path, texture);
+  return texture;
+}
+
+function applyTextureSet(material, textureSet) {
+  const set = textureSets[textureSet];
+  if (!set) throw new Error(`Unknown Three.js texture set: ${textureSet}`);
+  material.map = loadTexture(`${set.path}/color.jpg`, { color: true, repeat: set.repeat });
+  material.normalMap = loadTexture(`${set.path}/normal.jpg`, { repeat: set.repeat });
+  material.roughnessMap = loadTexture(`${set.path}/roughness.jpg`, { repeat: set.repeat });
+  material.needsUpdate = true;
+}
+
 export function createSurfaceMaterial(preset, options = {}) {
   const settings = surfacePresets[preset];
   if (!settings) throw new Error(`Unknown Three.js surface preset: ${preset}`);
-  return new THREE.MeshPhysicalMaterial({ ...settings, ...options });
+  const { textureSet, ...materialOptions } = options;
+  const material = new THREE.MeshPhysicalMaterial({ ...settings, ...materialOptions });
+  if (textureSet) applyTextureSet(material, textureSet);
+  return material;
 }
 
 export function createSceneRenderer(mount) {

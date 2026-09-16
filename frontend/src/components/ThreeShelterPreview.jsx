@@ -33,9 +33,9 @@ export function ThreeShelterPreview({ length, width, height, orientation, reduce
     const W = width * scale;
     const H = height * scale;
     const faceMaterials = [
-      createSurfaceMaterial("wall", { color: 0x567866, metalness: 0.18, roughness: 0.56 }),
+      createSurfaceMaterial("wall", { color: 0xffffff, textureSet: "plank", metalness: 0.05, roughness: 0.64 }),
       createSurfaceMaterial("wall", { color: 0x314d3e, metalness: 0.24, roughness: 0.48 }),
-      createSurfaceMaterial("roof", { color: 0x89a478, clearcoat: 0.2, roughness: 0.4 }),
+      createSurfaceMaterial("roof", { color: 0xffffff, textureSet: "corrugatedIron", metalness: 0.48, roughness: 0.48 }),
       createSurfaceMaterial("wall", { color: 0x1e3026, roughness: 0.9 }),
       createSurfaceMaterial("wall", { color: 0x6d967c, metalness: 0.15, roughness: 0.5 }),
       createSurfaceMaterial("wall", { color: 0x456652, metalness: 0.18, roughness: 0.58 }),
@@ -70,7 +70,7 @@ export function ThreeShelterPreview({ length, width, height, orientation, reduce
 
     const ground = new THREE.Mesh(
       new THREE.PlaneGeometry(34, 34),
-      createSurfaceMaterial("ground", { color: nightMode ? 0x0b120e : 0xdce2d5, metalness: 0.1 })
+      createSurfaceMaterial("ground", { color: nightMode ? 0x59615c : 0xffffff, textureSet: "concrete", metalness: 0.04 })
     );
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
