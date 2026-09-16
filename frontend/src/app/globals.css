@@ -102,6 +102,25 @@ button { font: inherit; color: inherit; }
 }
 .btn-square:hover { box-shadow: 0 0 0 1px #52a8ff; }
 .btn-square-nav { padding: 8px 12px; }
+.project-actions { display: flex; align-items: center; gap: 8px; }
+.project-status { max-width: 150px; overflow: hidden; color: inherit; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; opacity: .72; }
+.project-action { display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; color: inherit; cursor: pointer; font: inherit; font-size: 12px; }
+.project-action svg { width: 15px; height: 15px; }
+.project-save { font-weight: 600; }
+.project-action:disabled { cursor: wait; opacity: .6; }
+.projects-page { min-height: 100vh; padding: 72px max(24px, calc((100vw - 1160px) / 2)); background: #f4f2eb; color: #17211c; }
+.projects-header { display: flex; align-items: end; justify-content: space-between; gap: 30px; padding-bottom: 38px; border-bottom: 1px solid rgba(23, 33, 28, .18); }
+.projects-header h1 { margin: 8px 0 10px; font-size: clamp(36px, 5vw, 58px); letter-spacing: -.05em; }
+.projects-header p:not(.eyebrow) { max-width: 560px; margin: 0; color: #526056; }
+.projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; padding-top: 32px; }
+.project-card { display: flex; min-height: 215px; flex-direction: column; padding: 24px; border: 1px solid rgba(23, 33, 28, .18); background: #fffdf8; box-shadow: 4px 4px 0 rgba(23, 33, 28, .12); }
+.project-card h2 { margin: 12px 0 8px; font-size: 23px; }
+.project-card > p:not(.eyebrow) { margin: 0; color: #526056; }
+.project-card-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: auto; padding-top: 20px; }
+.project-delete { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid rgba(23, 33, 28, .25); background: transparent; color: #8d342d; cursor: pointer; }
+.project-delete svg { width: 17px; height: 17px; }
+.projects-message { margin: 32px 0; color: #526056; }
+.projects-error { color: #a12b22; }
 .btn-square-hero {
   font-size: 20px;
   padding: 16px 22px;

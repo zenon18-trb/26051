@@ -29,8 +29,13 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.3",
+    "supabase": "^2.117.0",
     "tailwindcss": "^4",
     "tsx": "^4.19.3",
     "typescript": "^5"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "unrs-resolver@1.12.2": true
   }
 }

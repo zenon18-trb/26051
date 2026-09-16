@@ -44,7 +44,9 @@ export async function updateSession(request: NextRequest) {
 
   const isProtectedRoute =
     request.nextUrl.pathname === '/configure' ||
-    request.nextUrl.pathname.startsWith('/configure/')
+    request.nextUrl.pathname.startsWith('/configure/') ||
+    request.nextUrl.pathname === '/projects' ||
+    request.nextUrl.pathname.startsWith('/projects/')
 
   if (!user && isProtectedRoute) {
     // Preserve the intended destination so login can send the user back here.

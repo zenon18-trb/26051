@@ -3,7 +3,6 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import type {
   ClimateResponse,
-  ComfortBand,
   HvacConfig,
   LocationPreset,
   MaterialLayer,
@@ -12,6 +11,7 @@ import type {
   VentConfig,
   WindowConfig,
 } from "@/lib/api";
+import type { ProjectSnapshot } from "@/lib/projects";
 
 export type SelectedLocation = {
   preset: LocationPreset | null;
@@ -30,6 +30,8 @@ type ShelterConfigurationValue = {
   occupants: number | null;
   hvac: HvacConfig | null;
   simulationResult: SimulationResponse | null;
+  activeProjectId: string | null;
+  activeProjectName: string | null;
   setLocationClimate: (location: SelectedLocation, climate: ClimateResponse) => void;
   setGeometry: (geometry: ShelterGeometry | null) => void;
   setWallLayers: (layers: MaterialLayer[]) => void;
@@ -39,6 +41,8 @@ type ShelterConfigurationValue = {
   setOccupants: (occupants: number | null) => void;
   setHvac: (hvac: HvacConfig | null) => void;
   setSimulationResult: (result: SimulationResponse | null) => void;
+  hydrateProject: (snapshot: ProjectSnapshot, project: { id: string; name: string }) => void;
+  resetProject: () => void;
   isMaterialsConfigured: boolean;
   isWindowsConfigured: boolean;
   isVentilationConfigured: boolean;
@@ -61,6 +65,8 @@ export function ShelterConfigurationProvider({ children }: { children: ReactNode
   const [occupants, setOccupants] = useState<number | null>(null);
   const [hvac, setHvac] = useState<HvacConfig | null>(null);
   const [simulationResult, setSimulationResult] = useState<SimulationResponse | null>(null);
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+  const [activeProjectName, setActiveProjectName] = useState<string | null>(null);
 
   const isMaterialsConfigured = useMemo(() => {
     return (
@@ -128,6 +134,8 @@ export function ShelterConfigurationProvider({ children }: { children: ReactNode
       occupants,
       hvac,
       simulationResult,
+      activeProjectId,
+      activeProjectName,
       isMaterialsConfigured,
       isWindowsConfigured,
       isVentilationConfigured,
@@ -163,6 +171,34 @@ export function ShelterConfigurationProvider({ children }: { children: ReactNode
       setSimulationResult: (result: SimulationResponse | null) => {
         setSimulationResult(result);
       },
+      hydrateProject: (snapshot: ProjectSnapshot, project: { id: string; name: string }) => {
+        setLocation(snapshot.location);
+        setClimate(snapshot.climate);
+        setGeometry(snapshot.geometry);
+        setWallLayers(snapshot.wallLayers);
+        setRoofLayers(snapshot.roofLayers);
+        setWindows(snapshot.windows);
+        setVents(snapshot.vents);
+        setOccupants(snapshot.occupants);
+        setHvac(snapshot.hvac);
+        setSimulationResult(snapshot.simulationResult);
+        setActiveProjectId(project.id);
+        setActiveProjectName(project.name);
+      },
+      resetProject: () => {
+        setLocation(null);
+        setClimate(null);
+        setGeometry(null);
+        setWallLayers([]);
+        setRoofLayers([]);
+        setWindows(null);
+        setVents(null);
+        setOccupants(null);
+        setHvac(null);
+        setSimulationResult(null);
+        setActiveProjectId(null);
+        setActiveProjectName(null);
+      },
     }),
     [
       location,
@@ -175,6 +211,8 @@ export function ShelterConfigurationProvider({ children }: { children: ReactNode
       occupants,
       hvac,
       simulationResult,
+      activeProjectId,
+      activeProjectName,
       isMaterialsConfigured,
       isWindowsConfigured,
       isVentilationConfigured,
@@ -193,6 +231,4 @@ export function useShelterConfiguration() {
   if (!context) throw new Error("useShelterConfiguration must be used within ShelterConfigurationProvider");
   return context;
 }
-
-
 

@@ -12,6 +12,7 @@ import { HvacThermalControl } from "@/components/HvacThermalControl";
 import { ThermalSimulation } from "@/components/ThermalSimulation";
 import { SimulationResults } from "@/components/SimulationResults";
 import { useShelterConfiguration } from "@/context/ShelterConfigurationContext";
+import { ProjectActions } from "@/components/ProjectActions";
 import {
   Activity,
   AppWindow,
@@ -526,6 +527,7 @@ function AppHeader({
           })}
         </nav>
         <div className="nav-right">
+          {!overlay && <ProjectActions />}
           {overlay && <a className="nav-register-link" href="/register">Create account</a>}
           <button
             className="mobile-menu"
