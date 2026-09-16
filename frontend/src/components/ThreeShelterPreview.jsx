@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import { createSceneRenderer, disposeObject3D, observeRendererSize } from "@/lib/three/scene";
 
 const orientationAngles = { North: 0, East: Math.PI / 2, South: Math.PI, West: -Math.PI / 2 };
 
@@ -13,12 +14,7 @@ export function ThreeShelterPreview({ length, width, height, orientation, reduce
     const mount = mountRef.current;
     if (!mount) return undefined;
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    mount.appendChild(renderer.domElement);
+    const renderer = createSceneRenderer(mount);
 
     const scene = new THREE.Scene();
     scene.fog = new THREE.Fog(nightMode ? 0x101914 : 0xe8ebdf, 10, 31);
@@ -119,16 +115,7 @@ export function ThreeShelterPreview({ length, width, height, orientation, reduce
     renderer.domElement.addEventListener("pointerleave", onPointerUp);
     renderer.domElement.addEventListener("wheel", onWheel, { passive: false });
 
-    const resize = () => {
-      const { width: canvasWidth, height: canvasHeight } = mount.getBoundingClientRect();
-      if (!canvasWidth || !canvasHeight) return;
-      camera.aspect = canvasWidth / canvasHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(canvasWidth, canvasHeight, false);
-    };
-    const observer = new ResizeObserver(resize);
-    observer.observe(mount);
-    resize();
+    const observer = observeRendererSize(mount, camera, renderer);
 
     let frameId;
     const render = (time) => {
@@ -150,13 +137,7 @@ export function ThreeShelterPreview({ length, width, height, orientation, reduce
       renderer.domElement.removeEventListener("pointerup", onPointerUp);
       renderer.domElement.removeEventListener("pointerleave", onPointerUp);
       renderer.domElement.removeEventListener("wheel", onWheel);
-      house.geometry.dispose();
-      faceMaterials.forEach((material) => material.dispose());
-      edges.geometry.dispose(); edges.material.dispose();
-      roofScan.geometry.dispose(); roofScan.material.dispose();
-      scanLine.geometry.dispose(); scanLine.material.dispose();
-      ground.geometry.dispose(); ground.material.dispose();
-      grid.geometry.dispose(); gridMaterials.forEach((material) => material.dispose());
+      disposeObject3D(scene);
       renderer.dispose();
       renderer.domElement.remove();
     };
