@@ -11,6 +11,7 @@ import type {
 import type { SelectedLocation } from "@/context/ShelterConfigurationContext";
 
 export type ProjectSnapshot = {
+  lastActiveItem?: string;
   location: SelectedLocation | null;
   climate: ClimateResponse | null;
   geometry: ShelterGeometry | null;
@@ -35,6 +36,7 @@ export type Project = {
 const jsonObject = z.object({}).passthrough();
 
 export const projectSnapshotSchema = z.object({
+  lastActiveItem: z.string().min(1).max(80).optional(),
   location: jsonObject.nullable(),
   climate: jsonObject.nullable(),
   geometry: jsonObject.nullable(),
@@ -52,8 +54,10 @@ export const createProjectSchema = z.object({
   configuration: projectSnapshotSchema,
 });
 
-export const updateProjectSchema = createProjectSchema.partial().refine(
-  (value) => value.name !== undefined || value.configuration !== undefined,
+export const updateProjectSchema = createProjectSchema.partial().extend({
+  lastActiveItem: z.string().trim().min(1).max(80).optional(),
+}).refine(
+  (value) => value.name !== undefined || value.configuration !== undefined || value.lastActiveItem !== undefined,
   "Provide a name or configuration to update.",
 );
 

@@ -32,6 +32,8 @@ type ShelterConfigurationValue = {
   simulationResult: SimulationResponse | null;
   activeProjectId: string | null;
   activeProjectName: string | null;
+  projectRevision: number;
+  activeProjectStage: string;
   setLocationClimate: (location: SelectedLocation, climate: ClimateResponse) => void;
   setGeometry: (geometry: ShelterGeometry | null) => void;
   setWallLayers: (layers: MaterialLayer[]) => void;
@@ -43,6 +45,7 @@ type ShelterConfigurationValue = {
   setSimulationResult: (result: SimulationResponse | null) => void;
   hydrateProject: (snapshot: ProjectSnapshot, project: { id: string; name: string }) => void;
   resetProject: () => void;
+  setActiveProjectStage: (stage: string) => void;
   isMaterialsConfigured: boolean;
   isWindowsConfigured: boolean;
   isVentilationConfigured: boolean;
@@ -67,6 +70,8 @@ export function ShelterConfigurationProvider({ children }: { children: ReactNode
   const [simulationResult, setSimulationResult] = useState<SimulationResponse | null>(null);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const [activeProjectName, setActiveProjectName] = useState<string | null>(null);
+  const [projectRevision, setProjectRevision] = useState(0);
+  const [activeProjectStage, setActiveProjectStage] = useState("Location Climate");
 
   const isMaterialsConfigured = useMemo(() => {
     return (
@@ -136,6 +141,8 @@ export function ShelterConfigurationProvider({ children }: { children: ReactNode
       simulationResult,
       activeProjectId,
       activeProjectName,
+      projectRevision,
+      activeProjectStage,
       isMaterialsConfigured,
       isWindowsConfigured,
       isVentilationConfigured,
@@ -184,6 +191,8 @@ export function ShelterConfigurationProvider({ children }: { children: ReactNode
         setSimulationResult(snapshot.simulationResult);
         setActiveProjectId(project.id);
         setActiveProjectName(project.name);
+        setActiveProjectStage(snapshot.lastActiveItem ?? "Location Climate");
+        setProjectRevision((revision) => revision + 1);
       },
       resetProject: () => {
         setLocation(null);
@@ -198,7 +207,10 @@ export function ShelterConfigurationProvider({ children }: { children: ReactNode
         setSimulationResult(null);
         setActiveProjectId(null);
         setActiveProjectName(null);
+        setActiveProjectStage("Location Climate");
+        setProjectRevision((revision) => revision + 1);
       },
+      setActiveProjectStage,
     }),
     [
       location,
@@ -213,6 +225,8 @@ export function ShelterConfigurationProvider({ children }: { children: ReactNode
       simulationResult,
       activeProjectId,
       activeProjectName,
+      projectRevision,
+      activeProjectStage,
       isMaterialsConfigured,
       isWindowsConfigured,
       isVentilationConfigured,
@@ -231,4 +245,3 @@ export function useShelterConfiguration() {
   if (!context) throw new Error("useShelterConfiguration must be used within ShelterConfigurationProvider");
   return context;
 }
-

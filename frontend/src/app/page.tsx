@@ -111,6 +111,9 @@ export default function Home({ initialActiveItem = "Dashboard" }: { initialActiv
     isOccupantsConfigured,
     isVentilationAndOccupantsConfigured,
     isHvacConfigured,
+    projectRevision,
+    activeProjectId,
+    setActiveProjectStage,
   } = useShelterConfiguration();
 
   const isDashboard = activeItem === "Dashboard";
@@ -135,7 +138,16 @@ export default function Home({ initialActiveItem = "Dashboard" }: { initialActiv
     }
   })();
 
-  function goTo(item: string) {
+  function goTo(item: string, projectId?: string) {
+    setActiveProjectStage(item);
+    const targetProjectId = projectId ?? activeProjectId;
+    if (targetProjectId) {
+      void fetch(`/api/projects/${targetProjectId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lastActiveItem: item }),
+      });
+    }
     if (item === "Dashboard") {
       if (pathname !== "/") {
         router.push("/");
@@ -239,23 +251,24 @@ export default function Home({ initialActiveItem = "Dashboard" }: { initialActiv
         )}
 
         <main className="content-area">
-          {activeItem === "Location Climate" && <LocationClimate />}
-          {activeItem === "Shelter Configuration" && <ShelterConfiguration />}
-          {activeItem === "Materials Library" && <MaterialsLibrary />}
-          {activeItem === "Windows & Glazing" && <WindowsGlazing />}
-          {activeItem === "Ventilation & Occupants" && <VentilationOccupants />}
-          {activeItem === "HVAC & Thermal Control" && <HvacThermalControl />}
+          {activeItem === "Location Climate" && <LocationClimate key={`location-${projectRevision}`} />}
+          {activeItem === "Shelter Configuration" && <ShelterConfiguration key={`geometry-${projectRevision}`} />}
+          {activeItem === "Materials Library" && <MaterialsLibrary key={`materials-${projectRevision}`} />}
+          {activeItem === "Windows & Glazing" && <WindowsGlazing key={`windows-${projectRevision}`} />}
+          {activeItem === "Ventilation & Occupants" && <VentilationOccupants key={`ventilation-${projectRevision}`} />}
+          {activeItem === "HVAC & Thermal Control" && <HvacThermalControl key={`hvac-${projectRevision}`} />}
           {activeItem === "Analysis" && (
-            <ThermalSimulation onNavigateToResults={() => goTo("Reports")} />
+            <ThermalSimulation key={`analysis-${projectRevision}`} onNavigateToResults={() => goTo("Reports")} />
           )}
           {activeItem === "Reports" && (
-            <SimulationResults onNavigateToSimulation={() => goTo("Analysis")} />
+            <SimulationResults key={`reports-${projectRevision}`} onNavigateToSimulation={() => goTo("Analysis")} />
           )}
           {isDashboard && (
             <>
               <FieldConditions />
               <OverviewBrief />
               <DashboardHome
+                key={`dashboard-${projectRevision}`}
                 climateConfigured={Boolean(climate)}
                 geometryConfigured={Boolean(geometry)}
                 materialsConfigured={isMaterialsConfigured}
@@ -493,7 +506,7 @@ function AppHeader({
   activeItem: string;
   menuOpen: boolean;
   onToggleMenu: () => void;
-  onNavigate: (item: string) => void;
+  onNavigate: (item: string, projectId?: string) => void;
 }) {
   const navItems = overlay ? landingNav : sidebarNav;
 
@@ -527,7 +540,7 @@ function AppHeader({
           })}
         </nav>
         <div className="nav-right">
-          {!overlay && <ProjectActions />}
+          {!overlay && <ProjectActions onProjectOpened={onNavigate} />}
           {overlay && <a className="nav-register-link" href="/register">Create account</a>}
           <button
             className="mobile-menu"
