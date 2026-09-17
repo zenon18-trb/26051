@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { addContactShadow, addLightingRig, createSceneRenderer, createSurfaceMaterial, disposeObject3D, observeRendererSize } from "@/lib/three/scene";
+import { addLandscapeContext } from "@/lib/three/landscape";
 import { createFlowMaterial } from "@/lib/three/shaders/materials";
 
 export function ThreeVentilationPreview({ isOpen, occupantsCount, length, width, height, reduceMotion = false }) {
@@ -13,7 +14,7 @@ export function ThreeVentilationPreview({ isOpen, occupantsCount, length, width,
     const mount = mountRef.current;
     if (!mount) return undefined;
     const renderer = createSceneRenderer(mount);
-    const scene = new THREE.Scene(); scene.fog = new THREE.Fog(nightMode ? 0x0c1511 : 0xe7ebe0, 8, 28);
+    const scene = new THREE.Scene(); scene.fog = new THREE.Fog(nightMode ? 0x0c1511 : 0xe7ebe0, 8, 28); const disposeLandscape = addLandscapeContext(scene);
     const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
     const scale = 5.2 / Math.max(length, width, height, 1); const L = length * scale; const W = width * scale; const H = height * scale;
     addLightingRig(scene, { nightMode, sunPosition: [6, 9, 6], daySunIntensity: 2.35, nightSunIntensity: 2 });
@@ -76,7 +77,7 @@ export function ThreeVentilationPreview({ isOpen, occupantsCount, length, width,
     renderer.domElement.addEventListener("pointerdown", down); renderer.domElement.addEventListener("pointermove", move); renderer.domElement.addEventListener("pointerup", up); renderer.domElement.addEventListener("pointerleave", up); renderer.domElement.addEventListener("wheel", wheel, { passive: false });
     const observer = observeRendererSize(mount, camera, renderer);
     let frame; const render = (time) => { frame = requestAnimationFrame(render); if (!reduceMotion && !pointer.active) shelter.rotation.y = Math.sin(time * .00022) * .055; if (!reduceMotion) { occupantGroup.children.forEach((person, i) => { person.position.y = Math.sin(time * .0017 + i) * .018; }); if (isOpen) arrows.position.x = Math.sin(time * .001) * .09; flowMaterials.forEach((material) => { material.uniforms.uTime.value = time * .001; }); } renderer.render(scene, camera); }; render(0);
-    return () => { cancelAnimationFrame(frame); observer.disconnect(); renderer.domElement.removeEventListener("pointerdown", down); renderer.domElement.removeEventListener("pointermove", move); renderer.domElement.removeEventListener("pointerup", up); renderer.domElement.removeEventListener("pointerleave", up); renderer.domElement.removeEventListener("wheel", wheel); disposeObject3D(scene); renderer.dispose(); renderer.domElement.remove(); };
+    return () => { cancelAnimationFrame(frame); observer.disconnect(); renderer.domElement.removeEventListener("pointerdown", down); renderer.domElement.removeEventListener("pointermove", move); renderer.domElement.removeEventListener("pointerup", up); renderer.domElement.removeEventListener("pointerleave", up); renderer.domElement.removeEventListener("wheel", wheel); disposeLandscape(); disposeObject3D(scene); renderer.dispose(); renderer.domElement.remove(); };
   }, [isOpen, occupantsCount, length, width, height, nightMode, reduceMotion]);
   return <div className={`three-shelter three-ventilation ${isOpen ? "three-ventilation-open" : ""}`} aria-label="Interactive three-dimensional ventilation and occupants preview"><div ref={mountRef} className="three-shelter-canvas" /><div className="three-shelter-topline"><span><i /> {isOpen ? "CROSS FLOW ACTIVE" : "INFILTRATION ONLY"}</span><button type="button" onClick={() => setNightMode((value) => !value)}>{nightMode ? "Night mode" : "Day mode"}</button></div><div className="three-shelter-hint">DRAG TO ORBIT · SCROLL TO ZOOM · {occupantsCount} PERSONS{occupantsCount > 8 ? " · MODEL SHOWS 8" : ""}</div></div>;
 }

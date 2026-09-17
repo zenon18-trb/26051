@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { addContactShadow, addLightingRig, createSceneRenderer, createSurfaceMaterial, disposeObject3D, observeRendererSize } from "@/lib/three/scene";
+import { addLandscapeContext } from "@/lib/three/landscape";
 
 const orientationAngles = { North: 0, East: Math.PI / 2, South: Math.PI, West: -Math.PI / 2 };
 
@@ -18,6 +19,7 @@ export function ThreeShelterPreview({ length, width, height, orientation, reduce
 
     const scene = new THREE.Scene();
     scene.fog = new THREE.Fog(nightMode ? 0x101914 : 0xe8ebdf, 10, 31);
+    const disposeLandscape = addLandscapeContext(scene);
     const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
     const scale = 5.2 / Math.max(length, width, height, 1);
     const shelter = new THREE.Group();
@@ -133,6 +135,7 @@ export function ThreeShelterPreview({ length, width, height, orientation, reduce
       renderer.domElement.removeEventListener("pointerup", onPointerUp);
       renderer.domElement.removeEventListener("pointerleave", onPointerUp);
       renderer.domElement.removeEventListener("wheel", onWheel);
+      disposeLandscape();
       disposeObject3D(scene);
       renderer.dispose();
       renderer.domElement.remove();

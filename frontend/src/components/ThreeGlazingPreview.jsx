@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { addContactShadow, addLightingRig, createSceneRenderer, createSurfaceMaterial, disposeObject3D, observeRendererSize } from "@/lib/three/scene";
+import { addLandscapeContext } from "@/lib/three/landscape";
 import { createFresnelGlassMaterial } from "@/lib/three/shaders/materials";
 
 const orientationAngles = { North: 0, East: Math.PI / 2, South: Math.PI, West: -Math.PI / 2 };
@@ -18,6 +19,7 @@ export function ThreeGlazingPreview({ length, width, height, orientation, window
 
     const scene = new THREE.Scene();
     scene.fog = new THREE.Fog(nightMode ? 0x0c1511 : 0xe6eadf, 9, 28);
+    const disposeLandscape = addLandscapeContext(scene);
     const camera = new THREE.PerspectiveCamera(39, 1, 0.1, 100);
     const scale = 5.2 / Math.max(length, width, height, 1);
     const L = length * scale;
@@ -123,7 +125,7 @@ export function ThreeGlazingPreview({ length, width, height, orientation, window
     let frameId;
     const render = (time) => { frameId = requestAnimationFrame(render); if (!reduceMotion && !pointer.active) shelter.rotation.y = (orientationAngles[orientation] ?? 0) + Math.sin(time * 0.00025) * 0.05; if (!reduceMotion && hasWindow) windowLight.intensity = (nightMode ? 10 : 5.5) + (Math.sin(time * 0.002) + 1) * 0.6; renderer.render(scene, camera); };
     render(0);
-    return () => { cancelAnimationFrame(frameId); observer.disconnect(); renderer.domElement.removeEventListener("pointerdown", onPointerDown); renderer.domElement.removeEventListener("pointermove", onPointerMove); renderer.domElement.removeEventListener("pointerup", onPointerUp); renderer.domElement.removeEventListener("pointerleave", onPointerUp); renderer.domElement.removeEventListener("wheel", onWheel); disposeObject3D(scene); renderer.dispose(); renderer.domElement.remove(); };
+    return () => { cancelAnimationFrame(frameId); observer.disconnect(); renderer.domElement.removeEventListener("pointerdown", onPointerDown); renderer.domElement.removeEventListener("pointermove", onPointerMove); renderer.domElement.removeEventListener("pointerup", onPointerUp); renderer.domElement.removeEventListener("pointerleave", onPointerUp); renderer.domElement.removeEventListener("wheel", onWheel); disposeLandscape(); disposeObject3D(scene); renderer.dispose(); renderer.domElement.remove(); };
   }, [length, width, height, orientation, windowArea, kind, nightMode, reduceMotion]);
 
   return <div className={`three-shelter three-glazing ${kind === "open" ? "three-glazing-open" : ""}`} aria-label="Interactive three-dimensional window and glazing preview"><div ref={mountRef} className="three-shelter-canvas" /><div className="three-shelter-topline"><span><i /> {kind === "glazed" ? "GLASS RESPONSE" : "OPEN APERTURE"}</span><button type="button" onClick={() => setNightMode((value) => !value)}>{nightMode ? "Night mode" : "Day mode"}</button></div><div className="three-shelter-hint">DRAG TO ORBIT · SCROLL TO ZOOM</div></div>;
