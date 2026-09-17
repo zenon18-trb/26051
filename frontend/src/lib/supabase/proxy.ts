@@ -48,12 +48,31 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname === '/projects' ||
     request.nextUrl.pathname.startsWith('/projects/')
 
+  const isAuthRoute =
+    request.nextUrl.pathname === '/login' ||
+    request.nextUrl.pathname === '/register'
+
+  const redirectWithSessionCookies = (url: URL) => {
+    const response = NextResponse.redirect(url)
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      response.cookies.set(cookie)
+    })
+    return response
+  }
+
   if (!user && isProtectedRoute) {
     // Preserve the intended destination so login can send the user back here.
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     url.searchParams.set('next', request.nextUrl.pathname)
-    return NextResponse.redirect(url)
+    return redirectWithSessionCookies(url)
+  }
+
+  if (user && isAuthRoute) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/configure'
+    url.search = ''
+    return redirectWithSessionCookies(url)
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
