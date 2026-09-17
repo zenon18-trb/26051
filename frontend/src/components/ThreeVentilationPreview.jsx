@@ -19,11 +19,48 @@ export function ThreeVentilationPreview({ isOpen, occupantsCount, length, width,
     addLightingRig(scene, { nightMode, sunPosition: [6, 9, 6], daySunIntensity: 2.35, nightSunIntensity: 2 });
     const ambientFlow = new THREE.PointLight(isOpen ? 0x6ec6ad : 0x7c9d8b, isOpen ? 8 : 2, 14); ambientFlow.position.set(0, H * 0.6, 0); scene.add(ambientFlow);
     const shelter = new THREE.Group(); scene.add(shelter);
-    const shell = new THREE.Mesh(new THREE.BoxGeometry(L, H, W), createSurfaceMaterial("shell", { color: 0x597a65, transparent: true, opacity: 0.24, side: THREE.DoubleSide })); shell.position.y = H / 2; shelter.add(shell);
-    const edges = new THREE.LineSegments(new THREE.EdgesGeometry(shell.geometry), new THREE.LineBasicMaterial({ color: 0x203b2d, transparent: true, opacity: 0.9 })); edges.position.copy(shell.position); shelter.add(edges);
+    const shell = new THREE.Group(); shelter.add(shell);
+    const shellMaterial = createSurfaceMaterial("shell", { color: 0x597a65, transparent: true, opacity: 0.24, side: THREE.DoubleSide });
+    const wallDepth = Math.min(.11, Math.max(.055, Math.min(L, W) * .025));
+    const ventHeight = H * .22;
+    const ventWidth = W * .26;
+    const ventCenterY = H * .62;
+    const ventBottom = ventCenterY - ventHeight / 2;
+    const ventTop = ventCenterY + ventHeight / 2;
+    const addShellPanel = (panelWidth, panelHeight, panelDepth, x, y, z) => {
+      const panel = new THREE.Mesh(new THREE.BoxGeometry(panelWidth, panelHeight, panelDepth), shellMaterial);
+      panel.position.set(x, y, z); shell.add(panel);
+    };
+    addShellPanel(L, H, wallDepth, 0, H / 2, -W / 2 + wallDepth / 2);
+    addShellPanel(L, H, wallDepth, 0, H / 2, W / 2 - wallDepth / 2);
+    addShellPanel(L, wallDepth, W, 0, H - wallDepth / 2, 0);
+    [-1, 1].forEach((side) => {
+      const x = side * (L / 2 - wallDepth / 2);
+      const sideWidth = Math.max(.01, (W - ventWidth) / 2);
+      addShellPanel(wallDepth, ventBottom, W, x, ventBottom / 2, 0);
+      addShellPanel(wallDepth, H - ventTop, W, x, ventTop + (H - ventTop) / 2, 0);
+      addShellPanel(wallDepth, ventHeight, sideWidth, x, ventCenterY, -(ventWidth + sideWidth) / 2);
+      addShellPanel(wallDepth, ventHeight, sideWidth, x, ventCenterY, (ventWidth + sideWidth) / 2);
+    });
+    const shellOutlineGeometry = new THREE.BoxGeometry(L, H, W);
+    const edges = new THREE.LineSegments(new THREE.EdgesGeometry(shellOutlineGeometry), new THREE.LineBasicMaterial({ color: 0x203b2d, transparent: true, opacity: 0.9 }));
+    shellOutlineGeometry.dispose(); edges.position.y = H / 2; shelter.add(edges);
     const floor = new THREE.Mesh(new THREE.BoxGeometry(L * .94, .08, W * .94), new THREE.MeshStandardMaterial({ color: 0x334d3d, roughness: .84 })); floor.position.y = .04; shelter.add(floor);
     const ventMaterial = createSurfaceMaterial("frame", { color: isOpen ? 0x78c0a6 : 0x59645e, textureSet: "metalPlate", metalness: .62, roughness: .35, emissive: isOpen ? 0x174a36 : 0x000000, emissiveIntensity: .8 });
-    [-1, 1].forEach((side) => { const vent = new THREE.Mesh(new THREE.BoxGeometry(.12, H * .22, W * .26), ventMaterial); vent.position.set(side * (L / 2 + .025), H * .62, 0); shelter.add(vent); });
+    [-1, 1].forEach((side) => {
+      const x = side * (L / 2 + wallDepth * .15);
+      const frameDepth = wallDepth * 1.3;
+      [[.05, ventWidth, ventHeight / 2, 0], [.05, ventWidth, -ventHeight / 2, 0], [ventHeight, .05, 0, ventWidth / 2], [ventHeight, .05, 0, -ventWidth / 2]].forEach(([frameHeight, frameWidth, y, z]) => {
+        const frame = new THREE.Mesh(new THREE.BoxGeometry(frameDepth, frameHeight, frameWidth), ventMaterial);
+        frame.position.set(x, ventCenterY + y, z); shelter.add(frame);
+      });
+      for (let louvre = 0; louvre < 4; louvre += 1) {
+        const slat = new THREE.Mesh(new THREE.BoxGeometry(frameDepth * 1.1, .025, ventWidth * .83), ventMaterial);
+        slat.position.set(x, ventBottom + ventHeight * (.22 + louvre * .19), 0);
+        slat.rotation.z = side * .18;
+        shelter.add(slat);
+      }
+    });
     const occupantGroup = new THREE.Group(); shelter.add(occupantGroup);
     const displayCount = Math.min(occupantsCount, 8);
     const personMaterial = new THREE.MeshStandardMaterial({ color: 0xf4ba7a, metalness: .08, roughness: .55, emissive: nightMode ? 0x552c15 : 0x000000, emissiveIntensity: .35 });

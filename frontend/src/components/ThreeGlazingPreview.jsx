@@ -86,6 +86,19 @@ export function ThreeGlazingPreview({ length, width, height, orientation, window
       });
       const cross = new THREE.Mesh(new THREE.BoxGeometry(0.035, paneHeight * 0.92, frameDepth), frameMaterial);
       cross.position.z = 0.06; windowGroup.add(cross);
+      if (kind === "open") {
+        const sash = new THREE.Group();
+        sash.position.set(0, -paneHeight / 2, frameDepth * 1.35);
+        sash.rotation.x = -0.58;
+        const sashDepth = frameDepth * .78;
+        [[paneWidth, .055, 0, paneHeight / 2], [paneWidth, .055, 0, -paneHeight / 2], [.055, paneHeight, paneWidth / 2, 0], [.055, paneHeight, -paneWidth / 2, 0]].forEach(([sashWidth, sashHeight, x, y]) => {
+          const sashFrame = new THREE.Mesh(new THREE.BoxGeometry(sashWidth, sashHeight, sashDepth), frameMaterial);
+          sashFrame.position.set(x, y, 0); sash.add(sashFrame);
+        });
+        const openPane = new THREE.Mesh(new THREE.PlaneGeometry(paneWidth * .9, paneHeight * .9), new THREE.MeshBasicMaterial({ color: 0x4b9c85, transparent: true, opacity: .13, side: THREE.DoubleSide, depthWrite: false }));
+        openPane.position.z = sashDepth / 2; sash.add(openPane);
+        windowGroup.add(sash);
+      }
     }
 
     const ground = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), createSurfaceMaterial("ground", { color: nightMode ? 0x59615c : 0xffffff, textureSet: "concrete" }));
