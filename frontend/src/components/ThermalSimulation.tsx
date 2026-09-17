@@ -51,7 +51,12 @@ export function ThermalSimulation({
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [selectedHourIndex, setSelectedHourIndex] = useState(0);
   const reduceMotion = useReducedMotion();
+  const activeHourIndex = simulationResult
+    ? Math.min(selectedHourIndex, Math.max(simulationResult.hourly.length - 1, 0))
+    : 0;
+  const activeSimulationPoint = simulationResult?.hourly[activeHourIndex] ?? null;
 
   // Pre-flight check item list
   const preFlightChecks = [
@@ -325,9 +330,28 @@ export function ThermalSimulation({
               occupants={occupants}
               hvac={hvac}
               isRunning={isLoading}
+              simulationPoint={activeSimulationPoint}
+              comfortBand={simulationResult?.comfort ?? null}
               reduceMotion={Boolean(reduceMotion)}
             />
             <p className="preview-caption">Assembled system model · Envelope, glazing, vents, occupants and HVAC shown from active configuration</p>
+            {simulationResult && activeSimulationPoint ? (
+              <div className="thermal-visualization-control">
+                <label htmlFor="simulation-hour">Thermal overlay · server result</label>
+                <input
+                  id="simulation-hour"
+                  type="range"
+                  min="0"
+                  max={Math.max(simulationResult.hourly.length - 1, 0)}
+                  value={activeHourIndex}
+                  onChange={(event) => setSelectedHourIndex(Number(event.target.value))}
+                />
+                <output>
+                  {activeSimulationPoint.timestamp.slice(11, 16)} · indoor {activeSimulationPoint.t_in_c.toFixed(1)}°C · outdoor {activeSimulationPoint.t_out_c.toFixed(1)}°C
+                </output>
+                <small>Illustrative surface gradient based on the backend indoor-temperature result for this hour.</small>
+              </div>
+            ) : null}
           </div>
 
           {simulationResult ? (

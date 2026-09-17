@@ -91,3 +91,43 @@ export function createFlowMaterial({ color = 0x6ed4b5, speed = 0.42, intensity =
     side: THREE.DoubleSide,
   });
 }
+
+const thermalVertexShader = /* glsl */ `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const thermalFragmentShader = /* glsl */ `
+  uniform float uValue;
+  uniform float uOpacity;
+  varying vec2 vUv;
+
+  void main() {
+    vec3 cold = vec3(0.16, 0.52, 0.82);
+    vec3 neutral = vec3(0.34, 0.76, 0.52);
+    vec3 hot = vec3(0.94, 0.30, 0.16);
+    float normalized = clamp(uValue, 0.0, 1.0);
+    vec3 thermal = normalized < 0.5
+      ? mix(cold, neutral, normalized * 2.0)
+      : mix(neutral, hot, (normalized - 0.5) * 2.0);
+    float contour = smoothstep(0.42, 0.5, abs(fract(vUv.y * 9.0 + normalized * 2.0) - 0.5));
+    gl_FragColor = vec4(mix(thermal * 0.76, thermal, contour), uOpacity);
+  }
+`;
+
+export function createThermalSurfaceMaterial({ value = 0.5, opacity = 0.46 } = {}) {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      uValue: { value: THREE.MathUtils.clamp(value, 0, 1) },
+      uOpacity: { value: opacity },
+    },
+    vertexShader: thermalVertexShader,
+    fragmentShader: thermalFragmentShader,
+    transparent: true,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  });
+}
